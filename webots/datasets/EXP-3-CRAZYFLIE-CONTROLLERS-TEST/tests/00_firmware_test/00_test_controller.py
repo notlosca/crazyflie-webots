@@ -296,7 +296,7 @@ import pickle, os
 collect_data = True
 
 parent_folder = '../../datasets/EXP-3-CRAZYFLIE-CONTROLLERS-TEST'
-folder = parent_folder +'/tests'+ '/00_test'
+folder = parent_folder +'/tests'+ '/00_firmware_test'
 
 if not os.path.isdir(folder):
     os.makedirs(folder)

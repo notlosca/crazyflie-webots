@@ -78,7 +78,7 @@ take_off_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':0.0, 'position.z':
 tasks[0] = take_off_info
 
 first_task = False
-first_task_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':0.0, 'position.z':1.0, 'attitudeRate.yaw':np.pi/6}, 'num_steps':1000}
+first_task_info = {'setpoints': {'velocity.x':0.1, 'velocity.y':.1, 'position.z':1.0, 'attitudeRate.yaw':0}, 'num_steps':1000}
 first_task_step = 0
 tasks[1] = first_task_info
 
@@ -161,7 +161,7 @@ while robot.step(timestep) != -1: # and step < 5000:
     sensors.gyro.z = degrees(yaw_rate)
 
     if take_off:
-        
+                
         info = tasks[0] # take_off_info
         
         isclose = np.isclose(zGlobal, info['setpoints']['position.z'], rtol=1e-2)
@@ -199,7 +199,7 @@ while robot.step(timestep) != -1: # and step < 5000:
         setpoint.velocity.y = info['setpoints']['velocity.y']
         
         my_vel = info['setpoints']['attitudeRate.yaw']
-        # magic_constant = 0.0626
+        # magic_constant = 0.0626
         magic_constant = 1
         setpoint.attitudeRate.yaw = degrees(my_vel/magic_constant)
         
@@ -208,17 +208,17 @@ while robot.step(timestep) != -1: # and step < 5000:
         print("Desired state", info)
     
     elif first_task:
-        
+                
         info = tasks[1]
         
         ## Fill in Setpoints
         # Setpoint mode
         setpoint = cffirmware.setpoint_t()
         
+        setpoint.mode.z = cffirmware.modeAbs
+        
         setpoint.mode.x = cffirmware.modeVelocity
         setpoint.mode.y = cffirmware.modeVelocity
-        
-        setpoint.mode.z = cffirmware.modeAbs
         
         setpoint.mode.yaw = cffirmware.modeVelocity
         
@@ -235,13 +235,13 @@ while robot.step(timestep) != -1: # and step < 5000:
         setpoint.velocity_body = True
     
         print("Desired state", info)
-    
-        print("\n ")
-        print(f"########### ------------------ ATTITUDE RATES [rad/s] -------------------- ###########")
-        print(f"R: {roll_rate:.4f}\tP: {pitch_rate:.4f}\tY: {yaw_rate:.4f}")
-        print(f"########### ------------------ ATTITUDE RATES [rad/s] -------------------- ###########")
-        print("\n ")
 
+        print("\n ")
+        print("########### ------------------ VELOCITIES [m/s] -------------------- ###########")
+        print(f"X: {vxGlobal:.4f}\tY: {vyGlobal:.4f}\tZ: {vzGlobal:.4f}")
+        print("########### ------------------ VELOCITIES [m/s] -------------------- ###########")
+        print("\n ")
+        
         first_task_step += 1
         
         if first_task_step == info['num_steps']:
@@ -342,7 +342,7 @@ import pickle, os
 collect_data = True
 
 parent_folder = '../../datasets/EXP-3-CRAZYFLIE-CONTROLLERS-TEST'
-folder = parent_folder +'/tests'+ '/01_test'
+folder = parent_folder +'/tests'+ '/05_firmware_test'
 
 if not os.path.isdir(folder):
     os.makedirs(folder)

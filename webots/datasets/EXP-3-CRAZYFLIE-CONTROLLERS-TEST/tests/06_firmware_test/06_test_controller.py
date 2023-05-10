@@ -78,7 +78,7 @@ take_off_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':0.0, 'position.z':
 tasks[0] = take_off_info
 
 first_task = False
-first_task_info = {'setpoints': {'velocity.x':0.1, 'velocity.y':.1, 'position.z':1.0, 'attitudeRate.yaw':0}, 'num_steps':1000}
+first_task_info = {'setpoints': {'velocity.x':0.1, 'velocity.y':.1, 'velocity.z':.1, 'attitudeRate.yaw':0}, 'num_steps':1000}
 first_task_step = 0
 tasks[1] = first_task_info
 
@@ -193,10 +193,10 @@ while robot.step(timestep) != -1: # and step < 5000:
         
         setpoint.mode.yaw = cffirmware.modeVelocity
         
-        setpoint.position.z = info['setpoints']['position.z']
         
         setpoint.velocity.x = info['setpoints']['velocity.x']
         setpoint.velocity.y = info['setpoints']['velocity.y']
+        setpoint.position.z = info['setpoints']['position.z']
         
         my_vel = info['setpoints']['attitudeRate.yaw']
         # magic_constant = 0.0626
@@ -215,17 +215,15 @@ while robot.step(timestep) != -1: # and step < 5000:
         # Setpoint mode
         setpoint = cffirmware.setpoint_t()
         
-        setpoint.mode.z = cffirmware.modeAbs
-        
         setpoint.mode.x = cffirmware.modeVelocity
         setpoint.mode.y = cffirmware.modeVelocity
+        setpoint.mode.z = cffirmware.modeVelocity
         
         setpoint.mode.yaw = cffirmware.modeVelocity
-        
-        setpoint.position.z = info['setpoints']['position.z']
-        
+                
         setpoint.velocity.x = info['setpoints']['velocity.x']
         setpoint.velocity.y = info['setpoints']['velocity.y']
+        setpoint.velocity.z = info['setpoints']['velocity.z']
         
         my_vel = info['setpoints']['attitudeRate.yaw']
         # magic_constant = 0.0626 # = 1/16 ca.
@@ -342,7 +340,7 @@ import pickle, os
 collect_data = True
 
 parent_folder = '../../datasets/EXP-3-CRAZYFLIE-CONTROLLERS-TEST'
-folder = parent_folder +'/tests'+ '/05_test'
+folder = parent_folder +'/tests'+ '/06_firmware_test'
 
 if not os.path.isdir(folder):
     os.makedirs(folder)
