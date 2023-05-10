@@ -9,6 +9,10 @@ Viewpoint {
 Floor {
   size 100 100
   tileSize 0 0
+  appearance Parquetry {
+    type "chequered"
+    IBLStrength 0
+  }
 }
 TexturedBackground {
   texture "factory"

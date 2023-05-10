@@ -1,3 +1,6 @@
+# Take off and IBVS tasks
+
+
 #  ...........       ____  _ __
 #  |  ,-^-,  |      / __ )(_) /_______________ _____  ___
 #  | (  O  ) |     / __  / / __/ ___/ ___/ __ `/_  / / _ \
@@ -72,10 +75,10 @@ m4_motor = robot.getDevice("m4_motor");
 m4_motor.setPosition(float('inf'))
 m4_motor.setVelocity(1)
 
-print(m1_motor.getTargetPosition())
-print(m2_motor.getVelocity())
-print(m3_motor.getVelocity())
-print(m4_motor.getVelocity())
+# print(m1_motor.getTargetPosition())
+# print(m2_motor.getVelocity())
+# print(m3_motor.getVelocity())
+# print(m4_motor.getVelocity())
 
 ## Initialize Sensors
 imu = robot.getDevice("inertial unit")
@@ -188,8 +191,13 @@ starting_yaw = 0
 cnt = 0
 # starting_yaw = np.pi/2
 
+visual_servoing_task = False
+takeoff_height = 1.0
+prev_step = False
+hovering_steps = 0 # Counter used to check how many times we are in the desired state.
+
 while robot.step(timestep) != -1 and err > thresh: # and frame_n < n_samples: # with this condition the controller will exit
-    
+        
     dt = robot.getTime() - past_time
     
     ## Get measurements
@@ -287,129 +295,132 @@ while robot.step(timestep) != -1 and err > thresh: # and frame_n < n_samples: # 
     
     ########### ------------------ VISUAL SERVOING ------------------ ###########
     
-    ## Fill in Setpoints
-    setpoint = cffirmware.setpoint_t()
-    
-    # setpoint.mode.z = cffirmware.modeAbs
-    # setpoint.position.z = 1.0
-    
-    # setpoint.mode.roll = cffirmware.modeVelocity
-    # setpoint.mode.pitch = cffirmware.modeVelocity
-    setpoint.mode.yaw = cffirmware.modeVelocity
-    # setpoint.attitudeRate.roll = degrees(w_x)
-    # setpoint.attitudeRate.pitch = + degrees(w_x)
-    # setpoint.attitudeRate.yaw = degrees(w_z*100) # Working one
-    setpoint.attitudeRate.yaw = degrees(w_z/0.0626)
+    if visual_servoing_task:
+        
+        print("[IBVS] err:", np.linalg.norm(e))
+        
+        ## Fill in Setpoints
+        setpoint = cffirmware.setpoint_t()
+        
+        setpoint.mode.yaw = cffirmware.modeVelocity
+        setpoint.attitudeRate.yaw = degrees(w_z)*100
 
-    
-    # setpoint.mode.yaw = cffirmware.modeAbs
-    # setpoint.attitude.yaw = 90# degrees(0)
-    # setpoint.mode.roll = cffirmware.modeAbs
-    # setpoint.mode.pitch = cffirmware.modeAbs
-    # setpoint.attitude.roll = 0
-    # setpoint.attitude.pitch = 0
-    # setpoint.mode.yaw = cffirmware.modeVelocity
-    # setpoint.attitudeRate.yaw = degrees(w_z)
-    
-    setpoint.mode.x = cffirmware.modeVelocity
-    setpoint.mode.y = cffirmware.modeVelocity
-    setpoint.mode.z = cffirmware.modeVelocity
-    
-    setpoint.velocity.x = v_x
-    setpoint.velocity.y = v_y
-    setpoint.velocity.z = v_z
-    
-    setpoint.velocity_body = True # False for velocities in world frame. True for velocities boxy-fixed
+                
+        setpoint.mode.x = cffirmware.modeVelocity
+        setpoint.mode.y = cffirmware.modeVelocity
+        setpoint.mode.z = cffirmware.modeVelocity
+        
+        setpoint.velocity.x = v_x
+        setpoint.velocity.y = v_y
+        setpoint.velocity.z = v_z
+        
+        setpoint.velocity_body = True # False for velocities in world frame. True for velocities boxy-fixed
 
-    # ################ CRAZYFLIE FIRMWARE PID ################
-    # 
-    # # keyboard input
-    # forwardDesired = 0
-    # sidewaysDesired = 0
-    # yawDesired = 0
-# 
-    # key = keyboard.getKey()
-    # while key>0:
-    #     if key == Keyboard.UP:
-    #         forwardDesired = 0.5
-    #     elif key == Keyboard.DOWN:
-    #         forwardDesired = -0.5
-    #     elif key == Keyboard.RIGHT:
-    #         sidewaysDesired = -0.5
-    #     elif key == Keyboard.LEFT:
-    #         sidewaysDesired = 0.5
-    #     elif key == ord('Q'):
-    #         yawDesired = 8
-    #     elif key == ord('E'):
-    #         yawDesired = -8
-# 
-    #     key = keyboard.getKey()
-# 
-    # ## Example how to get sensor data
-    # # range_front_value = range_front.getValue();
-    # # cameraData = camera.getImage()
-# 
-    # ## Fill in Setpoints
-    # setpoint = cffirmware.setpoint_t()
-    # setpoint.mode.z = cffirmware.modeAbs
-    # setpoint.position.z = 1.0
-    # setpoint.mode.yaw = cffirmware.modeVelocity
-    # setpoint.attitudeRate.yaw = degrees(yawDesired)
-    # setpoint.mode.x = cffirmware.modeVelocity
-    # setpoint.mode.y = cffirmware.modeVelocity
-    # setpoint.velocity.x = forwardDesired
-    # setpoint.velocity.y = sidewaysDesired
-    # setpoint.velocity_body = True
-# 
-    # ################ CRAZYFLIE FIRMWARE PID ################
+        ## Firmware PID bindings
+        control = cffirmware.control_t()
+        tick = 100 #this value makes sure that the position controller and attitude controller are always always initiated
+        cffirmware.controllerPid(control, setpoint,sensors,state,tick)
 
-    ## Firmware PID bindings
-    control = cffirmware.control_t()
-    tick = 100 #this value makes sure that the position controller and attitude controller are always always initiated
-    cffirmware.controllerPid(control, setpoint,sensors,state,tick)
+        ## 
+        cmd_roll = radians(control.roll)
+        cmd_pitch = radians(control.pitch)
+        cmd_yaw = -radians(control.yaw)
+        cmd_thrust = control.thrust
 
-    ## 
-    cmd_roll = radians(control.roll)
-    cmd_pitch = radians(control.pitch)
-    cmd_yaw = -radians(control.yaw)
-    cmd_thrust = control.thrust
-    print('cmd_roll', cmd_roll)
-    print('cmd_pitch', cmd_pitch)
-    print('cmd_yaw', cmd_yaw)
-    print('cmd_thrust', cmd_thrust)
+        ## Motor mixing
+        motorPower_m1 =  cmd_thrust - cmd_roll + cmd_pitch + cmd_yaw
+        motorPower_m2 =  cmd_thrust - cmd_roll - cmd_pitch - cmd_yaw
+        motorPower_m3 =  cmd_thrust + cmd_roll - cmd_pitch + cmd_yaw
+        motorPower_m4 =  cmd_thrust + cmd_roll + cmd_pitch - cmd_yaw
+        
+        scaling = 1000 ##Todo, remove necessity of this scaling (SI units in firmware)
+        # scaling = 600 # DIFFERENT SCALING FACTOR
+        m1_motor.setVelocity(-motorPower_m1/scaling)
+        m2_motor.setVelocity(motorPower_m2/scaling)
+        m3_motor.setVelocity(-motorPower_m3/scaling)
+        m4_motor.setVelocity(motorPower_m4/scaling)
+    
+    else:
+        isclose = np.isclose(zGlobal, takeoff_height, rtol=1e-1)
+        if isclose and prev_step:
+            print(True)
+            print("prev_step", prev_step)
+            if prev_step:
+                hovering_steps += 1
+                prev_step = isclose
+                if hovering_steps >= 100:
+                    visual_servoing_task = True
+        else:
+            hovering_steps = 0
+            prev_step = isclose
+        
+        print(hovering_steps)
+        
+        ## Fill in Setpoints
+        setpoint = cffirmware.setpoint_t()
+        
+        setpoint.mode.z = cffirmware.modeAbs
+        setpoint.position.z = takeoff_height # 1.0
 
-    ## Motor mixing
-    motorPower_m1 =  cmd_thrust - cmd_roll + cmd_pitch + cmd_yaw
-    motorPower_m2 =  cmd_thrust - cmd_roll - cmd_pitch - cmd_yaw
-    motorPower_m3 =  cmd_thrust + cmd_roll - cmd_pitch + cmd_yaw
-    motorPower_m4 =  cmd_thrust + cmd_roll + cmd_pitch - cmd_yaw
-    
-    # print('motorPower_m1', motorPower_m1)
-    # print('motorPower_m2', motorPower_m2)
-    # print('motorPower_m3', motorPower_m3)
-    # print('motorPower_m4', motorPower_m4)
-    
-    # scaling = 1000 ##Todo, remove necessity of this scaling (SI units in firmware)
-    scaling = 600 # DIFFERENT SCALING FACTOR
-    m1_motor.setVelocity(-motorPower_m1/scaling)
-    m2_motor.setVelocity(motorPower_m2/scaling)
-    m3_motor.setVelocity(-motorPower_m3/scaling)
-    m4_motor.setVelocity(motorPower_m4/scaling)
-    
-    print(m1_motor.getTargetPosition())
-    print(m2_motor.getVelocity())
-    print(m3_motor.getVelocity())
-    print(m4_motor.getVelocity())
+        setpoint.mode.x = cffirmware.modeVelocity
+        setpoint.mode.y = cffirmware.modeVelocity
+        setpoint.velocity.x = 0.0
+        setpoint.velocity.y = 0.0
+        
+        setpoint.mode.yaw = cffirmware.modeVelocity
+        setpoint.attitudeRate.yaw = 0
+
+        setpoint.velocity_body = True # False for velocities in world frame. True for velocities boxy-fixed
+
+        
+
+        ## Firmware PID bindings
+        control = cffirmware.control_t()
+        tick = 100 #this value makes sure that the position controller and attitude controller are always always initiated
+        cffirmware.controllerPid(control, setpoint,sensors,state,tick)
+
+        ## 
+        cmd_roll = radians(control.roll)
+        cmd_pitch = radians(control.pitch)
+        cmd_yaw = -radians(control.yaw)
+        cmd_thrust = control.thrust
+        # print('cmd_roll', cmd_roll)
+        # print('cmd_pitch', cmd_pitch)
+        # print('cmd_yaw', cmd_yaw)
+        # print('cmd_thrust', cmd_thrust)
+
+        ## Motor mixing
+        motorPower_m1 =  cmd_thrust - cmd_roll + cmd_pitch + cmd_yaw
+        motorPower_m2 =  cmd_thrust - cmd_roll - cmd_pitch - cmd_yaw
+        motorPower_m3 =  cmd_thrust + cmd_roll - cmd_pitch + cmd_yaw
+        motorPower_m4 =  cmd_thrust + cmd_roll + cmd_pitch - cmd_yaw
+        
+        # print('motorPower_m1', motorPower_m1)
+        # print('motorPower_m2', motorPower_m2)
+        # print('motorPower_m3', motorPower_m3)
+        # print('motorPower_m4', motorPower_m4)
+        
+        scaling = 1000 ##Todo, remove necessity of this scaling (SI units in firmware)
+        # scaling = 600 # DIFFERENT SCALING FACTOR
+        m1_motor.setVelocity(-motorPower_m1/scaling)
+        m2_motor.setVelocity(motorPower_m2/scaling)
+        m3_motor.setVelocity(-motorPower_m3/scaling)
+        m4_motor.setVelocity(motorPower_m4/scaling)
+        
+        # print(m1_motor.getVelocity())
+        # print(m2_motor.getVelocity())
+        # print(m3_motor.getVelocity())
+        # print(m4_motor.getVelocity())
     
     past_time = robot.getTime()
     pastXGlobal = xGlobal
     pastYGlobal = yGlobal
     pastZGlobal = zGlobal
     
-    print(f'vx:{v_x:.4f}\tvy:{v_y:.4f}\tvz:{v_z:.4f}')
-    print(f'wx:{w_x:.4f}\twy:{w_y:.4f}\twz:{w_z:.4f}')
+    # print(f'vx:{v_x:.4f}\tvy:{v_y:.4f}\tvz:{v_z:.4f}')
+    # print(f'wx:{w_x:.4f}\twy:{w_y:.4f}\twz:{w_z:.4f}')
     
-    print('starting_yaw', starting_yaw)
+    # print('starting_yaw', starting_yaw)
     
     # Show image
     for id, col in enumerate(colors):

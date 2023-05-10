@@ -14,7 +14,7 @@
 """crazyflie_controller_py controller."""
 
 
-from controller import Robot
+from controller import Robot, Supervisor
 from controller import Motor
 from controller import InertialUnit
 from controller import GPS
@@ -32,7 +32,10 @@ import cffirmware
 
 import numpy as np
 
-robot = Robot()
+def get_angular_velocity(thrust:float, thrust_constant:float) -> float:
+    return np.sqrt(np.abs(thrust/thrust_constant))
+
+robot = Supervisor()
 
 timestep = int(robot.getBasicTimeStep())
 
@@ -49,6 +52,13 @@ m3_motor.setVelocity(-1)
 m4_motor = robot.getDevice("m4_motor")
 m4_motor.setPosition(float('inf'))
 m4_motor.setVelocity(1)
+
+crazyflie_node = robot.getFromDef("CRAZYFLIE")
+
+t_m1_const = crazyflie_node.getField('children').getMFNode(6).getField('thrustConstants').getSFVec2f()[0]
+t_m2_const = crazyflie_node.getField('children').getMFNode(7).getField('thrustConstants').getSFVec2f()[0]
+t_m3_const = crazyflie_node.getField('children').getMFNode(8).getField('thrustConstants').getSFVec2f()[0]
+t_m4_const = crazyflie_node.getField('children').getMFNode(9).getField('thrustConstants').getSFVec2f()[0]
 
 ## Initialize Sensors
 imu = robot.getDevice("inertial unit")
@@ -90,7 +100,7 @@ step = 0
 
 # Desired states
 x_desired = 0.0
-y_desired = 0.0
+y_desired = 1.0
 z_desired = 1.0
 first_task = True
 second_task = False
@@ -123,7 +133,7 @@ wait_time = 1000/2
 wait_step = 0
 
 # Main loop:
-while robot.step(timestep) != -1 and step < 5000:
+while robot.step(timestep) != -1: # and step < 5000:
     print(step)
     data = {}
     
@@ -433,10 +443,10 @@ while robot.step(timestep) != -1 and step < 5000:
     cmd_yaw = -radians(control.yaw)
     cmd_thrust = control.thrust
     
-    print('cmd_roll', cmd_roll)
-    print('cmd_pitch', cmd_pitch)
-    print('cmd_yaw', cmd_yaw)
-    print('cmd_thrust', cmd_thrust)
+    # print('cmd_roll', cmd_roll)
+    # print('cmd_pitch', cmd_pitch)
+    # print('cmd_yaw', cmd_yaw)
+    # print('cmd_thrust', cmd_thrust)
 
     ## Motor mixing
     motorPower_m1 =  cmd_thrust - cmd_roll + cmd_pitch + cmd_yaw
@@ -444,16 +454,33 @@ while robot.step(timestep) != -1 and step < 5000:
     motorPower_m3 =  cmd_thrust + cmd_roll - cmd_pitch + cmd_yaw
     motorPower_m4 =  cmd_thrust + cmd_roll + cmd_pitch - cmd_yaw
 
-    print('motorPower_m1', motorPower_m1)
-    print('motorPower_m2', motorPower_m2)
-    print('motorPower_m3', motorPower_m3)
-    print('motorPower_m4', motorPower_m4)
-
-    scaling = 1000 ##Todo, remove necessity of this scaling (SI units in firmware)
-    m1_motor.setVelocity(-motorPower_m1/scaling)
-    m2_motor.setVelocity(motorPower_m2/scaling)
-    m3_motor.setVelocity(-motorPower_m3/scaling)
-    m4_motor.setVelocity(motorPower_m4/scaling)
+    # print('motorPower_m1', motorPower_m1)
+    # print('motorPower_m2', motorPower_m2)
+    # print('motorPower_m3', motorPower_m3)
+    # print('motorPower_m4', motorPower_m4)
+    
+    # ########### ------------------ OLD SETVELOCITY -------------------- ########### 
+    
+    # scaling = 1000 ##Todo, remove necessity of this scaling (SI units in firmware)
+    # m1_motor.setVelocity(-motorPower_m1/scaling)
+    # m2_motor.setVelocity(motorPower_m2/scaling)
+    # m3_motor.setVelocity(-motorPower_m3/scaling)
+    # m4_motor.setVelocity(motorPower_m4/scaling)
+    
+    # ########### ------------------ OLD SETVELOCITY -------------------- ########### 
+    
+    m1_vel = get_angular_velocity(-motorPower_m1, t_m1_const)
+    m2_vel = get_angular_velocity(motorPower_m2, t_m2_const)
+    m3_vel = get_angular_velocity(-motorPower_m3, t_m3_const)
+    m4_vel = get_angular_velocity(motorPower_m4, t_m4_const)
+    
+    # It doesn't rise. It rises with 730 scaling
+    scaling = 730
+    m1_motor.setVelocity(-m1_vel/scaling)
+    m2_motor.setVelocity(m2_vel/scaling)
+    m3_motor.setVelocity(-m3_vel/scaling)
+    m4_motor.setVelocity(m4_vel/scaling)
+    
     
     past_time = robot.getTime()
     pastXGlobal = xGlobal

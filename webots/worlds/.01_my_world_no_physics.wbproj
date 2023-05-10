@@ -5,6 +5,6 @@ sceneTreePerspectives: 000000ff000000010000000200000111000000fa01000000020100000
 maximizedDockId: -1
 centralWidgetVisible: 1
 orthographicViewHeight: 1
-textFiles: 0 "controllers/ibvs_corner_no_phys/ibvs_corner_no_phys.py"
+textFiles: 0 "controllers/crazyflie_controller_py/crazyflie_controller_py.py"
 consoles: Console:All:All
 renderingDevicePerspectives: Crazyflie:camera;1;0.996875;0;0
