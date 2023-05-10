@@ -78,6 +78,7 @@ if __name__ == '__main__':
 
     past_x_global = 0
     past_y_global = 0
+    past_z_global = 0
     past_time = robot.getTime()
 
     # Crazyflie velocity PID controller
@@ -104,15 +105,13 @@ if __name__ == '__main__':
         actual_state = {}
 
         ## Get sensor data
-        roll = imu.getRollPitchYaw()[0]
-        pitch = imu.getRollPitchYaw()[1]
-        yaw = imu.getRollPitchYaw()[2]
-        yaw_rate = gyro.getValues()[2]
+        roll, pitch, yaw = imu.getRollPitchYaw()
+        roll_rate, pitch_rate, yaw_rate = gyro.getValues()
         altitude = gps.getValues()[2]
-        x_global = gps.getValues()[0]
+        x_global, y_global, z_global = gps.getValues()
         v_x_global = (x_global - past_x_global)/dt
-        y_global = gps.getValues()[1]
         v_y_global = (y_global - past_y_global)/dt
+        v_z_global = (z_global - past_z_global)/dt
 
         ## Get body fixed velocities
         cosyaw = cos(yaw)
@@ -121,7 +120,7 @@ if __name__ == '__main__':
         v_y = - v_x_global * sinyaw + v_y_global * cosyaw
 
         ## Initialize values
-        desired_state = [0, 0, 0, 0]
+        desired_state = [0, 0, 0, 0] # Not used
         forward_desired = 0
         sideways_desired = 0
         yaw_desired = 0
@@ -162,7 +161,7 @@ if __name__ == '__main__':
                                 roll, pitch, yaw_rate,
                                 altitude, v_x, v_y)
         
-        print(motor_power)
+        # print(motor_power)
         
         m1_motor.setVelocity(-motor_power[0])
         m2_motor.setVelocity(motor_power[1])
@@ -172,3 +171,23 @@ if __name__ == '__main__':
         past_time = robot.getTime()
         past_x_global = x_global
         past_y_global = y_global
+        past_z_global = z_global
+        
+        ########### ------------------ PRINT -------------------- ########### 
+        print("########### ------------------ GPS [m] -------------------- ###########")
+        print(f"X: {x_global:.4f}\tY: {y_global:.4f}\tZ: {z_global:.4f}")
+        print("########### ------------------ GPS [m] -------------------- ###########")
+        print("\n ")
+        print("########### ------------------ VELOCITIES [m/s] -------------------- ###########")
+        print(f"X: {v_x_global:.4f}\tY: {v_y_global:.4f}\tZ: {v_z_global:.4f}")
+        print("########### ------------------ VELOCITIES [m/s] -------------------- ###########")
+        print("\n ")
+        print("########### ------------------ IMU [rad] -------------------- ###########")
+        print(f"R: {roll:.4f}\tP: {pitch:.4f}\tY: {yaw:.4f}")
+        print("########### ------------------ IMU [rad] -------------------- ###########")
+        print("\n ")
+        print(f"########### ------------------ ATTITUDE RATES [rad/s] -------------------- ###########")
+        print(f"R: {roll_rate:.4f}\tP: {pitch_rate:.4f}\tY: {yaw_rate:.4f}")
+        print(f"########### ------------------ ATTITUDE RATES [rad/s] -------------------- ###########")
+        print("\n ")
+        ########### ------------------ PRINT -------------------- ########### 
