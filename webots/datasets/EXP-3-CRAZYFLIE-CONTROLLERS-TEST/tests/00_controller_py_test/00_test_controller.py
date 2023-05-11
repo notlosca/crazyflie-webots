@@ -113,7 +113,7 @@ if __name__ == '__main__':
     first_task = False
     first_task_info = {'setpoints': {'velocity.x':0.1, 'velocity.y':.1, 'velocity.z':.1, 'attitudeRate.yaw':0}, 'num_steps':1000}
     first_task_step = 0
-    tasks[1] = first_task_info
+    # tasks[1] = first_task_info
 
     second_task = False
 
