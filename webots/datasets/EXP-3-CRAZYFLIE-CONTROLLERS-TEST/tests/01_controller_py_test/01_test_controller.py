@@ -282,7 +282,7 @@ if __name__ == '__main__':
     collect_data = True
 
     parent_folder = '../../datasets/EXP-3-CRAZYFLIE-CONTROLLERS-TEST'
-    folder = parent_folder +'/tests'+ '/00_controller_py_test'
+    folder = parent_folder +'/tests'+ '/01_controller_py_test'
 
     if not os.path.isdir(folder):
         os.makedirs(folder)
