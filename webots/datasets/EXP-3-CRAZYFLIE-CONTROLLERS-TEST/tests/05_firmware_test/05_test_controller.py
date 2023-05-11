@@ -322,11 +322,11 @@ while robot.step(timestep) != -1: # and step < 5000:
     data['STATE'] = {'POSITION': (state.position.x, state.position.y, state.position.z), 
                      'VELOCITY': (state.velocity.x, state.velocity.y, state.velocity.z),
                      'ATTITUDE': (state.attitude.roll, state.attitude.pitch, state.attitude.yaw)}
-    data['SENSOR'] = {'ATTITUDE-RATE': (sensors.gyro.x, sensors.gyro.y, sensors.gyro.z)}
+    data['SENSOR'] = {'ATTITUDE-RATE': (radians(sensors.gyro.x), radians(sensors.gyro.y), radians(sensors.gyro.z))}
     data['SETPOINT'] = {'POSITION': (setpoint.position.x, setpoint.position.y, setpoint.position.z),
                         'VELOCITY': (setpoint.velocity.x, setpoint.velocity.y, setpoint.velocity.z),
                         'ATTITUDE': (setpoint.attitude.roll, setpoint.attitude.pitch, setpoint.attitude.yaw),
-                        'ATTITUDE-RATE': (setpoint.attitudeRate.roll, setpoint.attitudeRate.pitch, setpoint.attitudeRate.yaw)}
+                        'ATTITUDE-RATE': (radians(setpoint.attitudeRate.roll), radians(setpoint.attitudeRate.pitch), radians(setpoint.attitudeRate.yaw))}
     
     # Save data
     dataset[step] = data
