@@ -111,7 +111,7 @@ if __name__ == '__main__':
     tasks[0] = take_off_info
 
     first_task = False
-    first_task_info = {'setpoints': {'velocity.x':.1, 'velocity.y':.1, 'velocity.z':.0, 'attitudeRate.yaw':0.0}, 'num_steps':1000}
+    first_task_info = {'setpoints': {'velocity.x':0.1, 'velocity.y':.1, 'velocity.z':.1, 'attitudeRate.yaw':0}, 'num_steps':1000}
     first_task_step = 0
     tasks[1] = first_task_info
 
@@ -226,15 +226,7 @@ if __name__ == '__main__':
                                     yaw_desired, height_desired,
                                     roll, pitch, yaw_rate,
                                     altitude, v_x, v_y)
-
-            first_task_step += 1
         
-            if first_task_step == info['num_steps']:
-                first_task = False
-                second_task = True
-                print("Passing to the next task...")
-                break
-            
         # print(motor_power)
         
         m1_motor.setVelocity(-motor_power[0])
@@ -255,6 +247,10 @@ if __name__ == '__main__':
         print("########### ------------------ VELOCITIES [m/s] -------------------- ###########")
         print(f"X: {v_x_global:.4f}\tY: {v_y_global:.4f}\tZ: {v_z_global:.4f}")
         print("########### ------------------ VELOCITIES [m/s] -------------------- ###########")
+        print("\n ")
+        print("########### ------------------ BODY VELOCITIES [m/s] -------------------- ###########")
+        print(f"X: {v_x:.4f}\tY: {v_y:.4f}\tZ: NO")
+        print("########### ------------------ BODY VELOCITIES [m/s] -------------------- ###########")
         print("\n ")
         print("########### ------------------ IMU [rad] -------------------- ###########")
         print(f"R: {roll:.4f}\tP: {pitch:.4f}\tY: {yaw:.4f}")
@@ -287,10 +283,10 @@ if __name__ == '__main__':
     import pickle, os
 
     # Set to True if you want to collect data
-    collect_data = True
+    collect_data = False
 
     parent_folder = '../../datasets/EXP-3-CRAZYFLIE-CONTROLLERS-TEST'
-    folder = parent_folder +'/tests'+ '/05_controller_py_test'
+    folder = parent_folder +'/tests'+ '/01_controller_py_test'
 
     if not os.path.isdir(folder):
         os.makedirs(folder)
