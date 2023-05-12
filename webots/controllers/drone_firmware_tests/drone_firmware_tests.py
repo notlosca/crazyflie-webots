@@ -243,7 +243,8 @@ while robot.step(timestep) != -1: # and step < 5000:
         first_task_step += 1
         
         if first_task_step == info['num_steps']:
-            first_task = True
+            first_task = False
+            second_task = True
             print("Passing to the next task...")
             break
         
