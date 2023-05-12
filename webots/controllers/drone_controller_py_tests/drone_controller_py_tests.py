@@ -95,7 +95,7 @@ if __name__ == '__main__':
                       "kp_vel_xy": 2, "kd_vel_xy": 0.5, "kp_z": 10, "ki_z": 5, "kd_z": 5}
     
     gains = {"kp_att_y": 1, "kd_att_y": 0.5, "kp_att_rp": 0.5, "kd_att_rp": 0.1,
-             "kp_vel_xy": 2, "kd_vel_xy": 0.5, "kp_z": 8, "ki_z": 5, "kd_z": 5}
+             "kp_vel_xy": 2, "kd_vel_xy": 0.5, "kp_z": 8, "ki_z": 3, "kd_z": 5}
 
     height_desired = FLYING_ATTITUDE
     height_desired = 0
