@@ -245,9 +245,11 @@ if __name__ == '__main__':
             first_task_step += 1
         
             if first_task_step == info['num_steps']:
-                first_task = True
+                first_task = False
                 print("Passing to the next task...")
-                break
+        
+        else:
+            break # No more tasks
 
         # print(motor_power)
         

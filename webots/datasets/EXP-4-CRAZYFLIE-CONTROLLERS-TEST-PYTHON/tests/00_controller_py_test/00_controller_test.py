@@ -121,7 +121,7 @@ if __name__ == '__main__':
     tasks[0] = take_off_info
 
     first_task = False
-    first_task_info = {'setpoints': {'velocity.x':0.1, 'velocity.y':.1, 'velocity.z':.1, 'attitudeRate.yaw':0}, 'num_steps':1000}
+    first_task_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':.0, 'velocity.z':.0, 'attitudeRate.yaw':np.pi/6}, 'num_steps':1000}
     first_task_step = 0
     # tasks[1] = first_task_info
 
@@ -187,9 +187,8 @@ if __name__ == '__main__':
                     prev_step = isclose
                     if hovering_steps >= 500:
                         take_off = False
-                        first_task = True
                         print("Passing to the next task...")
-                        break
+                        # break
             else:
                 hovering_steps = 0
                 prev_step = isclose
@@ -241,7 +240,17 @@ if __name__ == '__main__':
                                     yaw_desired, height_desired,
                                     roll, pitch, yaw_rate,
                                     altitude, v_x, v_y, gains)
+            
+            first_task_step += 1
         
+            if first_task_step == info['num_steps']:
+                first_task = False
+                print("Passing to the next task...")
+        
+        else:
+
+            break # No more tasks
+
         # print(motor_power)
         
         m1_motor.setVelocity(-motor_power[0])
