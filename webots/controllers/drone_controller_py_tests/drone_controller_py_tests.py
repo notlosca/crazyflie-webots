@@ -39,7 +39,9 @@ if __name__ == '__main__':
 
     robot = Robot()
     timestep = int(robot.getBasicTimeStep())
-
+    
+    sampling_frequency = timestep
+    
     ## Initialize motors
     m1_motor = robot.getDevice("m1_motor");
     m1_motor.setPosition(float('inf'))
@@ -89,6 +91,7 @@ if __name__ == '__main__':
     sensor_read_last_time = robot.getTime()
 
     height_desired = FLYING_ATTITUDE
+    height_desired = 0
 
     print("\n");
 
@@ -107,11 +110,11 @@ if __name__ == '__main__':
     tasks = {}
 
     take_off = True
-    take_off_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':0.0, 'position.z':1.0, 'attitudeRate.yaw':0.0}}
+    take_off_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':0.0, 'velocity.z':0.1, 'attitudeRate.yaw':0.0}}
     tasks[0] = take_off_info
 
     first_task = False
-    first_task_info = {'setpoints': {'velocity.x':0.1, 'velocity.y':.1, 'velocity.z':.1, 'attitudeRate.yaw':0}, 'num_steps':1000}
+    first_task_info = {'setpoints': {'velocity.x':0.1, 'velocity.y':.1, 'velocity.z':.01, 'attitudeRate.yaw':0}, 'num_steps':1000}
     first_task_step = 0
     tasks[1] = first_task_info
 
@@ -120,7 +123,7 @@ if __name__ == '__main__':
     prev_step = False
     hovering_steps = 0 # Counter used to check how many times we are in the desired state.
 
-    dataset = {'info':tasks}
+    dataset = {'info':tasks, 'sampling_frequency':sampling_frequency}
 
     ## Initialize values
     desired_state = [0, 0, 0, 0] # Not used
@@ -168,7 +171,7 @@ if __name__ == '__main__':
             
             print(info)
 
-            isclose = np.isclose(z_global, info['setpoints']['position.z'], rtol=1e-2)
+            isclose = np.isclose(z_global, 1.0, rtol=1e-2)
             if isclose and prev_step:
                 print(True)
                 print("prev_step", prev_step)
@@ -189,7 +192,12 @@ if __name__ == '__main__':
             # Setpoints fashion (only in velocity)
             forward_desired = info['setpoints']['velocity.x']
             sideways_desired = info['setpoints']['velocity.y']
-            height_desired = info['setpoints']['position.z']
+            
+            if np.isclose(height_desired, 1.0, rtol=1e-2):
+                height_diff_desired = 0.0
+            else:   
+                height_diff_desired = info['setpoints']['velocity.z']
+            print('height_diff_desired',height_diff_desired)
             yaw_desired = info['setpoints']['attitudeRate.yaw']
             
             # New height. Integrate v_z to get the next position.
@@ -248,10 +256,10 @@ if __name__ == '__main__':
         print(f"X: {v_x_global:.4f}\tY: {v_y_global:.4f}\tZ: {v_z_global:.4f}")
         print("########### ------------------ VELOCITIES [m/s] -------------------- ###########")
         print("\n ")
-        print("########### ------------------ BODY VELOCITIES [m/s] -------------------- ###########")
-        print(f"X: {v_x:.4f}\tY: {v_y:.4f}\tZ: NO")
-        print("########### ------------------ BODY VELOCITIES [m/s] -------------------- ###########")
-        print("\n ")
+        # print("########### ------------------ BODY VELOCITIES [m/s] -------------------- ###########")
+        # print(f"X: {v_x:.4f}\tY: {v_y:.4f}\tZ: NO")
+        # print("########### ------------------ BODY VELOCITIES [m/s] -------------------- ###########")
+        # print("\n ")
         print("########### ------------------ IMU [rad] -------------------- ###########")
         print(f"R: {roll:.4f}\tP: {pitch:.4f}\tY: {yaw:.4f}")
         print("########### ------------------ IMU [rad] -------------------- ###########")
