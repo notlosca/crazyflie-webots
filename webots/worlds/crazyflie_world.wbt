@@ -249,7 +249,7 @@ DEF CRAZYFLIE Robot {
     density -1
     mass 0.05
   }
-  controller "drone_controller_py_tests"
+  controller "crazyflie_controller_py"
   supervisor TRUE
 }
 DEF CRAZYFLIE Robot {
