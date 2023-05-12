@@ -89,6 +89,13 @@ if __name__ == '__main__':
     PID_CF = pid_velocity_fixed_height_controller()
     PID_update_last_time = robot.getTime()
     sensor_read_last_time = robot.getTime()
+    
+    # Velocity PID control (converted from Crazyflie c code)
+    original_gains = {"kp_att_y": 1, "kd_att_y": 0.5, "kp_att_rp": 0.5, "kd_att_rp": 0.1,
+                      "kp_vel_xy": 2, "kd_vel_xy": 0.5, "kp_z": 10, "ki_z": 5, "kd_z": 5}
+    
+    gains = {"kp_att_y": 1, "kd_att_y": 0.5, "kp_att_rp": 0.5, "kd_att_rp": 0.1,
+             "kp_vel_xy": 2, "kd_vel_xy": 0.5, "kp_z": 8, "ki_z": 5, "kd_z": 5}
 
     height_desired = FLYING_ATTITUDE
     height_desired = 0
@@ -212,7 +219,7 @@ if __name__ == '__main__':
             motor_power = PID_CF.pid(dt, forward_desired, sideways_desired,
                                     yaw_desired, height_desired,
                                     roll, pitch, yaw_rate,
-                                    altitude, v_x, v_y)
+                                    altitude, v_x, v_y, gains)
         
         elif first_task:
             
@@ -233,7 +240,7 @@ if __name__ == '__main__':
             motor_power = PID_CF.pid(dt, forward_desired, sideways_desired,
                                     yaw_desired, height_desired,
                                     roll, pitch, yaw_rate,
-                                    altitude, v_x, v_y)
+                                    altitude, v_x, v_y, gains)
         
         # print(motor_power)
         
