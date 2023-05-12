@@ -288,6 +288,11 @@ if __name__ == '__main__':
                             'ATTITUDE': (None, None, None),
                             'ATTITUDE-RATE': (None, None, yaw_desired)}
         
+        data['MOTORS'] = {'m1':-motor_power[0],
+                          'm2':motor_power[1],
+                          'm3':-motor_power[2],
+                          'm4':motor_power[3],}
+        
         # Save data
         dataset[step] = data
 
