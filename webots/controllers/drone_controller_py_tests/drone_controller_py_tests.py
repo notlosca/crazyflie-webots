@@ -31,7 +31,7 @@ import sys
 sys.path.append('../../../controllers')
 # import os
 # print(os.listdir('../../../controllers'))
-from pid_controller_new_not_working import pid_velocity_fixed_height_controller
+from pid_controller import pid_velocity_fixed_height_controller
 
 FLYING_ATTITUDE = 1
 
