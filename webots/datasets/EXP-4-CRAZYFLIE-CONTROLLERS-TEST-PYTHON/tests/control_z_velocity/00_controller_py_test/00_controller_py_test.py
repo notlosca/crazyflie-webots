@@ -98,6 +98,9 @@ if __name__ == '__main__':
     # gains = {"kp_att_y": 1, "kd_att_y": 0.5, "kp_att_rp": 0.5, "kd_att_rp": 0.1,
     #          "kp_vel_xy": 2, "kd_vel_xy": 0.5, "kp_z": 8, "ki_z": 5, "kd_z": 5}
 
+    height_desired = FLYING_ATTITUDE
+    height_desired = 0
+
     print("\n");
 
     print("====== Controls =======\n\n");
@@ -121,19 +124,18 @@ if __name__ == '__main__':
     tasks = {}
 
     take_off = True
-    take_off_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':0.0, 'position.z':1, 'attitudeRate.yaw':0.0}}
+    take_off_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':0.0, 'velocity.z':.1, 'attitudeRate.yaw':0.0}}
     tasks[0] = take_off_info
 
     first_task = False
-    first_task_info = {'setpoints': {'velocity.x':0.1, 'velocity.y':.1, 'velocity.z':.1, 'attitudeRate.yaw':0}, 'num_steps':1000}
+    first_task_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':.0, 'velocity.z':.0, 'attitudeRate.yaw':np.pi/6}, 'num_steps':1000}
     first_task_step = 0
-    tasks[1] = first_task_info
+    # tasks[1] = first_task_info
 
     second_task = False
 
-    dataset = {'info':tasks, 'sampling_frequency':sampling_frequency, 'max_hovering_steps':max_hovering_steps}
 
-    height_desired = take_off_info['setpoints']['position.z']
+    dataset = {'info':tasks, 'sampling_frequency':sampling_frequency, 'max_hovering_steps':max_hovering_steps}
 
     ## Initialize values
     desired_state = [0, 0, 0, 0] # Not used
@@ -181,18 +183,17 @@ if __name__ == '__main__':
             
             print(info)
 
-            isclose = np.isclose(z_global, info['setpoints']['position.z'], rtol=1e-2)
+            isclose = np.isclose(z_global, 1.0, rtol=1e-2)
             if isclose and prev_step:
                 print(True)
                 print("prev_step", prev_step)
                 if prev_step:
                     hovering_steps += 1
                     prev_step = isclose
-                    if hovering_steps >= 500:
+                    if hovering_steps >= max_hovering_steps:
                         take_off = False
-                        first_task = True
                         print("Passing to the next task...")
-                        # break
+                        break
             else:
                 hovering_steps = 0
                 prev_step = isclose
@@ -202,7 +203,12 @@ if __name__ == '__main__':
             # Setpoints fashion (only in velocity)
             forward_desired = info['setpoints']['velocity.x']
             sideways_desired = info['setpoints']['velocity.y']
-            height_desired = info['setpoints']['position.z']
+            
+            if np.isclose(height_desired, 1.0, rtol=1e-2):
+                height_diff_desired = 0.0
+            else:   
+                height_diff_desired = info['setpoints']['velocity.z']
+            print('height_diff_desired',height_diff_desired)
             yaw_desired = info['setpoints']['attitudeRate.yaw']
             
             # New height. Integrate v_z to get the next position.
@@ -311,10 +317,10 @@ if __name__ == '__main__':
     import pickle, os
 
     # Set to True if you want to collect data
-    collect_data = False
+    collect_data = True
 
     parent_folder = '../../datasets/EXP-4-CRAZYFLIE-CONTROLLERS-TEST-PYTHON'
-    folder = parent_folder +'/tests/control_z_position'+ '/03_controller_py_test'
+    folder = parent_folder +'/tests/control_z_velocity'+ '/00_controller_py_test'
 
     if not os.path.isdir(folder):
         os.makedirs(folder)

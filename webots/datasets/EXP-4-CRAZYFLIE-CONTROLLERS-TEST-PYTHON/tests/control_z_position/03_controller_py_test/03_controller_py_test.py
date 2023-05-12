@@ -311,7 +311,7 @@ if __name__ == '__main__':
     import pickle, os
 
     # Set to True if you want to collect data
-    collect_data = False
+    collect_data = True
 
     parent_folder = '../../datasets/EXP-4-CRAZYFLIE-CONTROLLERS-TEST-PYTHON'
     folder = parent_folder +'/tests/control_z_position'+ '/03_controller_py_test'

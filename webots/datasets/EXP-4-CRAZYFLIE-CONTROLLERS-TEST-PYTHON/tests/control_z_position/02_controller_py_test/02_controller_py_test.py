@@ -125,7 +125,7 @@ if __name__ == '__main__':
     tasks[0] = take_off_info
 
     first_task = False
-    first_task_info = {'setpoints': {'velocity.x':0.1, 'velocity.y':.1, 'velocity.z':.1, 'attitudeRate.yaw':0}, 'num_steps':1000}
+    first_task_info = {'setpoints': {'velocity.x':0.1, 'velocity.y':.1, 'velocity.z':.0, 'attitudeRate.yaw':0}, 'num_steps':1000}
     first_task_step = 0
     tasks[1] = first_task_info
 
@@ -311,10 +311,10 @@ if __name__ == '__main__':
     import pickle, os
 
     # Set to True if you want to collect data
-    collect_data = False
+    collect_data = True
 
     parent_folder = '../../datasets/EXP-4-CRAZYFLIE-CONTROLLERS-TEST-PYTHON'
-    folder = parent_folder +'/tests/control_z_position'+ '/03_controller_py_test'
+    folder = parent_folder +'/tests/control_z_position'+ '/02_controller_py_test'
 
     if not os.path.isdir(folder):
         os.makedirs(folder)
