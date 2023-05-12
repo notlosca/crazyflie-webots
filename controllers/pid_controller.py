@@ -51,7 +51,7 @@ class pid_velocity_fixed_height_controller():
         # Altitude PID control
         alt_error = desired_altitude - actual_altitude
 
-        print('alt_error', alt_error)
+        # print('alt_error', alt_error)
 
         alt_deriv = (alt_error - self.past_alt_error) / dt
         self.altitude_integrator += alt_error * dt
@@ -59,7 +59,7 @@ class pid_velocity_fixed_height_controller():
             gains["ki_z"] * np.clip(self.altitude_integrator, -2, 2) + 48
         self.past_alt_error = alt_error
 
-        print('alt_command', alt_command)
+        # print('alt_command', alt_command)
 
         # Attitude PID control
         pitch_error = desired_pitch - actual_pitch
@@ -79,10 +79,10 @@ class pid_velocity_fixed_height_controller():
         m3 = alt_command + roll_command - pitch_command + yaw_command
         m4 = alt_command + roll_command + pitch_command - yaw_command
 
-        print('m1', m1)
-        print('m2', m2)
-        print('m3', m3) 
-        print('m4', m4)
+        # print('m1', m1)
+        # print('m2', m2)
+        # print('m3', m3) 
+        # print('m4', m4)
 
         # m1 = 1000.
         # m2 = 600.
