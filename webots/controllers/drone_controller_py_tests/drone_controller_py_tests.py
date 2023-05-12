@@ -117,11 +117,11 @@ if __name__ == '__main__':
     tasks = {}
 
     take_off = True
-    take_off_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':0.0, 'velocity.z':0.01, 'attitudeRate.yaw':0.0}}
+    take_off_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':0.0, 'velocity.z':.1, 'attitudeRate.yaw':0.0}}
     tasks[0] = take_off_info
 
     first_task = False
-    first_task_info = {'setpoints': {'velocity.x':0.1, 'velocity.y':.1, 'velocity.z':.1, 'attitudeRate.yaw':0}, 'num_steps':1000}
+    first_task_info = {'setpoints': {'velocity.x':0.1, 'velocity.y':.1, 'velocity.z':.1, 'attitudeRate.yaw':0.0}, 'num_steps':1000}
     first_task_step = 0
     tasks[1] = first_task_info
 
@@ -241,7 +241,14 @@ if __name__ == '__main__':
                                     yaw_desired, height_desired,
                                     roll, pitch, yaw_rate,
                                     altitude, v_x, v_y, gains)
+            
+            first_task_step += 1
         
+            if first_task_step == info['num_steps']:
+                first_task = True
+                print("Passing to the next task...")
+                break
+
         # print(motor_power)
         
         m1_motor.setVelocity(-motor_power[0])
@@ -303,10 +310,10 @@ if __name__ == '__main__':
     import pickle, os
 
     # Set to True if you want to collect data
-    collect_data = False
+    collect_data = True
 
     parent_folder = '../../datasets/EXP-4-CRAZYFLIE-CONTROLLERS-TEST-PYTHON'
-    folder = parent_folder +'/tests'+ '/06_controller_py_test'
+    folder = parent_folder +'/tests'+ '/03_controller_py_test'
 
     if not os.path.isdir(folder):
         os.makedirs(folder)
