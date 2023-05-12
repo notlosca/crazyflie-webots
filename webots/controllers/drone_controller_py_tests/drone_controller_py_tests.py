@@ -142,6 +142,8 @@ if __name__ == '__main__':
     yaw_desired = 0
     height_diff_desired = 0
     
+    it_idx = 0
+
     # Main loop:
     while robot.step(timestep) != -1:
 
@@ -155,9 +157,20 @@ if __name__ == '__main__':
         roll_rate, pitch_rate, yaw_rate = gyro.getValues()
         altitude = gps.getValues()[2]
         x_global, y_global, z_global = gps.getValues()
-        v_x_global = (x_global - past_x_global)/dt
-        v_y_global = (y_global - past_y_global)/dt
-        v_z_global = (z_global - past_z_global)/dt
+        # v_x_global, v_y_global, v_z_global = gps.getSpeedVector()
+        # print(gps.getSpeedVector())
+
+        if it_idx == 0:
+            # Initialization
+            v_x_global = (x_global - x_global)/dt
+            v_y_global = (y_global - y_global)/dt
+            v_z_global = (z_global - z_global)/dt
+            it_idx += 1
+        
+        else:
+            v_x_global = (x_global - past_x_global)/dt
+            v_y_global = (y_global - past_y_global)/dt
+            v_z_global = (z_global - past_z_global)/dt
 
         ########### ------------------ SAVING THINGS -------------------- ###########
 
@@ -310,17 +323,19 @@ if __name__ == '__main__':
         
     import pickle, os
 
+    ########### ------------------ SAVING THINGS -------------------- ###########
+    
     # Set to True if you want to collect data
     collect_data = False
 
-    parent_folder = '../../datasets/EXP-4-CRAZYFLIE-CONTROLLERS-TEST-PYTHON'
-    folder = parent_folder +'/tests/control_z_position'+ '/03_controller_py_test'
-
-    if not os.path.isdir(folder):
-        os.makedirs(folder)
-
-    ########### ------------------ SAVING THINGS -------------------- ###########
     if collect_data:
+        
+        parent_folder = '../../datasets/EXP-4-CRAZYFLIE-CONTROLLERS-TEST-PYTHON'
+        folder = parent_folder +'/tests/control_z_position'+ '/03_controller_py_test'
+
+        if not os.path.isdir(folder):
+            os.makedirs(folder)
+
         print("Saving data...")
         with open(folder + '/data.pickle', 'wb') as f:
             pickle.dump(dataset, f, protocol=pickle.HIGHEST_PROTOCOL)
