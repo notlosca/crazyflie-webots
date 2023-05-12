@@ -95,7 +95,7 @@ if __name__ == '__main__':
                       "kp_vel_xy": 2, "kd_vel_xy": 0.5, "kp_z": 10, "ki_z": 5, "kd_z": 5}
     
     gains = {"kp_att_y": 1, "kd_att_y": 0.5, "kp_att_rp": 0.5, "kd_att_rp": 0.1,
-             "kp_vel_xy": 2, "kd_vel_xy": 0.5, "kp_z": 8, "ki_z": 3, "kd_z": 5}
+             "kp_vel_xy": 2, "kd_vel_xy": 0.5, "kp_z": 8, "ki_z": 5, "kd_z": 5}
 
     height_desired = FLYING_ATTITUDE
     height_desired = 0
@@ -117,11 +117,11 @@ if __name__ == '__main__':
     tasks = {}
 
     take_off = True
-    take_off_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':0.0, 'velocity.z':0.1, 'attitudeRate.yaw':0.0}}
+    take_off_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':0.0, 'velocity.z':0.01, 'attitudeRate.yaw':0.0}}
     tasks[0] = take_off_info
 
     first_task = False
-    first_task_info = {'setpoints': {'velocity.x':0.1, 'velocity.y':.1, 'velocity.z':.01, 'attitudeRate.yaw':0}, 'num_steps':1000}
+    first_task_info = {'setpoints': {'velocity.x':0.1, 'velocity.y':.1, 'velocity.z':.1, 'attitudeRate.yaw':0}, 'num_steps':1000}
     first_task_step = 0
     tasks[1] = first_task_info
 
@@ -300,8 +300,8 @@ if __name__ == '__main__':
     # Set to True if you want to collect data
     collect_data = False
 
-    parent_folder = '../../datasets/EXP-3-CRAZYFLIE-CONTROLLERS-TEST'
-    folder = parent_folder +'/tests'+ '/01_controller_py_test'
+    parent_folder = '../../datasets/EXP-4-CRAZYFLIE-CONTROLLERS-TEST-PYTHON'
+    folder = parent_folder +'/tests'+ '/06_controller_py_test'
 
     if not os.path.isdir(folder):
         os.makedirs(folder)
