@@ -353,8 +353,10 @@ if __name__ == '__main__':
             try:
                 e = pd - p_detected
                 err = np.linalg.norm(e)
+                print(f"Error: {err:.2f}")
                 if err <= thresh:
                     visual_servoing = False
+                    tasks[2]['setpoints']['position.z'] = z_global
                     cross_the_gate = True
                     print("Passing to the next task...")
             except:
@@ -474,28 +476,28 @@ if __name__ == '__main__':
         past_y_global = y_global
         past_z_global = z_global
         
-        ########### ------------------ PRINT -------------------- ########### 
-        print("########### ------------------ GPS [m] -------------------- ###########")
-        print(f"X: {x_global:.4f}\tY: {y_global:.4f}\tZ: {z_global:.4f}")
-        print("########### ------------------ GPS [m] -------------------- ###########")
-        print("\n ")
-        print("########### ------------------ VELOCITIES [m/s] -------------------- ###########")
-        print(f"X: {v_x_global:.4f}\tY: {v_y_global:.4f}\tZ: {v_z_global:.4f}")
-        print("########### ------------------ VELOCITIES [m/s] -------------------- ###########")
-        print("\n ")
+        # ########### ------------------ PRINT -------------------- ########### 
+        # print("########### ------------------ GPS [m] -------------------- ###########")
+        # print(f"X: {x_global:.4f}\tY: {y_global:.4f}\tZ: {z_global:.4f}")
+        # print("########### ------------------ GPS [m] -------------------- ###########")
+        # print("\n ")
+        # print("########### ------------------ VELOCITIES [m/s] -------------------- ###########")
+        # print(f"X: {v_x_global:.4f}\tY: {v_y_global:.4f}\tZ: {v_z_global:.4f}")
+        # print("########### ------------------ VELOCITIES [m/s] -------------------- ###########")
+        # print("\n ")
         # print("########### ------------------ BODY VELOCITIES [m/s] -------------------- ###########")
         # print(f"X: {v_x:.4f}\tY: {v_y:.4f}\tZ: NO")
         # print("########### ------------------ BODY VELOCITIES [m/s] -------------------- ###########")
         # print("\n ")
-        print("########### ------------------ IMU [rad] -------------------- ###########")
-        print(f"R: {roll:.4f}\tP: {pitch:.4f}\tY: {yaw:.4f}")
-        print("########### ------------------ IMU [rad] -------------------- ###########")
-        print("\n ")
-        print(f"########### ------------------ ATTITUDE RATES [rad/s] -------------------- ###########")
-        print(f"R: {roll_rate:.4f}\tP: {pitch_rate:.4f}\tY: {yaw_rate:.4f}")
-        print(f"########### ------------------ ATTITUDE RATES [rad/s] -------------------- ###########")
-        print("\n ")
-        ########### ------------------ PRINT -------------------- ########### 
+        # print("########### ------------------ IMU [rad] -------------------- ###########")
+        # print(f"R: {roll:.4f}\tP: {pitch:.4f}\tY: {yaw:.4f}")
+        # print("########### ------------------ IMU [rad] -------------------- ###########")
+        # print("\n ")
+        # print(f"########### ------------------ ATTITUDE RATES [rad/s] -------------------- ###########")
+        # print(f"R: {roll_rate:.4f}\tP: {pitch_rate:.4f}\tY: {yaw_rate:.4f}")
+        # print(f"########### ------------------ ATTITUDE RATES [rad/s] -------------------- ###########")
+        # print("\n ")
+        # ########### ------------------ PRINT -------------------- ########### 
         
         ########### ------------------ SAVING THINGS -------------------- ###########
 
