@@ -217,6 +217,7 @@ if __name__ == '__main__':
     lmda = 0.08
 
     thresh = 5e-1
+    thresh = 5
     err = np.inf
 
     ########### ------------------ VISUAL SERVOING ------------------ ###########
@@ -229,9 +230,12 @@ if __name__ == '__main__':
     sideways_desired = 0
     yaw_desired = 0
     height_diff_desired = 0
+    starting_altitude = None
     
     it_idx = 0 # Iteration index
-
+    
+    print("Take off!")
+    
     # Main loop:
     while robot.step(timestep) != -1:
 
@@ -250,6 +254,7 @@ if __name__ == '__main__':
 
         if it_idx == 0:
             # Initialization
+            starting_altitude = z_global
             v_x_global = (x_global - x_global)/dt
             v_y_global = (y_global - y_global)/dt
             v_z_global = (z_global - z_global)/dt
@@ -268,7 +273,6 @@ if __name__ == '__main__':
         
         ########### ------------------ SAVING THINGS -------------------- ###########
 
-
         ## Get body fixed velocities
         cosyaw = cos(yaw)
         sinyaw = sin(yaw)
@@ -282,11 +286,9 @@ if __name__ == '__main__':
 
         if take_off:
             
-            print("Take off!")
-            
             info = tasks[0] # take_off_info
             
-            print(info)
+            # print(info)
 
             isclose = np.isclose(z_global, info['setpoints']['position.z'], rtol=1e-2)
             if isclose and prev_step:
@@ -298,7 +300,7 @@ if __name__ == '__main__':
                     if hovering_steps >= 500:
                         take_off = False
                         visual_servoing = True
-                        print("Passing to the next task...")
+                        print("Going in front of the gate...")
                         # break
             else:
                 hovering_steps = 0
@@ -323,11 +325,9 @@ if __name__ == '__main__':
         
         elif visual_servoing:
             
-            print("Going in front of the gate...")
-            
             info = tasks[1]
             
-            print(info)
+            # print(info)
             
             ########### ------------------ ROTATIONS ------------------ ###########
             rotation_matrix_world_drone = rotation.rotation_matrix(roll, pitch, yaw)
@@ -354,12 +354,14 @@ if __name__ == '__main__':
                 e = pd - p_detected
                 err = np.linalg.norm(e)
                 print(f"Error: {err:.2f}")
+                
                 if err <= thresh:
                     visual_servoing = False
                     tasks[2]['setpoints']['position.z'] = z_global
                     cross_the_gate = True
-                    print("Passing to the next task...")
-            except:
+                    print("Crossing the gate...")
+            except Exception as e:
+                print(e)
                 continue
             
             # stacked image Jacobian
@@ -407,29 +409,32 @@ if __name__ == '__main__':
             
         elif cross_the_gate:
             
-            print("Crossing the gate...")
-            
             info = tasks[2]
             
-            print(info)
+            # print(info)
             
-            if cross_the_gate_steps == info['num_samples']:
+            if cross_the_gate_steps >= info['num_steps']:
                 
                 hovering_steps += 1
+
+                # Setpoints fashion (only in velocity)
+                forward_desired = 0.0
+                sideways_desired = 0.0
+                height_desired = info['setpoints']['position.z']
+                yaw_desired = info['setpoints']['attitudeRate.yaw']
                 
                 if hovering_steps >= 500:
                     cross_the_gate = False
                     landing = True
-                    print("Passing to the next task...")
+                    print("Landing...")
             else:
                 hovering_steps = 0
-        
-            
-            # Setpoints fashion (only in velocity)
-            forward_desired = info['setpoints']['velocity.x']
-            sideways_desired = info['setpoints']['velocity.y']
-            height_desired = info['setpoints']['position.z']
-            yaw_desired = info['setpoints']['attitudeRate.yaw']
+
+                # Setpoints fashion (only in velocity)
+                forward_desired = info['setpoints']['velocity.x']
+                sideways_desired = info['setpoints']['velocity.y']
+                height_desired = info['setpoints']['position.z']
+                yaw_desired = info['setpoints']['attitudeRate.yaw']
             
             # New height. Integrate v_z to get the next position.
             height_desired += height_diff_desired * dt 
@@ -439,18 +444,19 @@ if __name__ == '__main__':
                                     yaw_desired, height_desired,
                                     roll, pitch, yaw_rate,
                                     altitude, v_x, v_y, gains)
+            # print(f'{cross_the_gate_steps}/{info["num_steps"]}')
+            cross_the_gate_steps += 1
+
         elif landing:
             
-            print("Landing...")
+            info = tasks[3]
             
-            info = tasks[2]
-            
-            print(info)
+            # print(info)
             
             # Setpoints fashion (only in velocity)
             forward_desired = info['setpoints']['velocity.x']
             sideways_desired = info['setpoints']['velocity.y']
-            height_desired = info['setpoints']['position.z']
+            height_desired = 0
             yaw_desired = info['setpoints']['attitudeRate.yaw']
             
             # New height. Integrate v_z to get the next position.
@@ -461,6 +467,10 @@ if __name__ == '__main__':
                                     yaw_desired, height_desired,
                                     roll, pitch, yaw_rate,
                                     altitude, v_x, v_y, gains)
+            
+            if np.isclose(z_global, height_desired):
+                landing = False
+
         else:
             print("Landed!")    
             break # No more tasks
