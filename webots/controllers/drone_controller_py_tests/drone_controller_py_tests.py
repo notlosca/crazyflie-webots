@@ -50,6 +50,30 @@ from pid_controller import pid_velocity_fixed_height_controller
 
 FLYING_ATTITUDE = 1
 
+########### ------------------ SAVING THINGS -------------------- ###########
+    
+# Set to True if you want to collect data
+collect_data = True
+
+if collect_data:
+        
+    parent_folder = '../../datasets/EXP-5-IBVS'
+    folder = parent_folder +'/tests/'+ '00_gt_test'
+
+    imgs_folder = f'{folder}/imgs/'
+    imgs_ibvs_folder = f'{folder}/imgs_ibvs/'
+
+    if not os.path.isdir(folder):
+        os.makedirs(folder)
+
+    if not os.path.isdir(imgs_folder):
+        os.makedirs(imgs_folder)
+
+    if not os.path.isdir(imgs_ibvs_folder):
+        os.makedirs(imgs_ibvs_folder)
+
+########### ------------------ SAVING THINGS -------------------- ###########
+
 if __name__ == '__main__':
 
     robot = Supervisor()
@@ -158,9 +182,9 @@ if __name__ == '__main__':
 
     # Hovering
     prev_step = False
-    hovering_steps = 0 # Counter used to check how many times we are in the desired state.
-    max_hovering_steps = 500
-
+    hovering_time = 3 # seconds
+    hovering_steps = hovering_time*sampling_frequency
+    
     ########### ------------------ HOVERING ------------------ ###########
     
     ########### ------------------ TASKS ------------------ ###########
@@ -168,30 +192,33 @@ if __name__ == '__main__':
     # Desired states
     tasks = {}
 
+    tasks['order'] = ['take_off', 'visual_servoing', 'cross_the_gate', 'land']
+
     take_off = True
-    take_off_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':0.0, 'position.z':1, 'attitudeRate.yaw':0.0}, 'num_steps':1000}
-    tasks[0] = take_off_info
+    take_off_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':0.0, 'position.z':1, 'attitudeRate.yaw':0.0}}
+    tasks['take_off'] = take_off_info
 
     visual_servoing = False
-    tasks[1] = {'visual_servoing':True}
+    tasks['visual_servoing'] = {'visual_servoing':True}
     
     cross_the_gate = False
     num_seconds = 10
-    cross_the_gate_info = {'setpoints': {'velocity.x':0.1, 'velocity.y':0.0, 'position.z':None, 'attitudeRate.yaw':0.0}, 'num_steps':num_seconds*sampling_frequency}
+    cross_the_gate_info = {'setpoints': {'velocity.x':0.1, 'velocity.y':0.0, 'velocity.z':0.0, 'attitudeRate.yaw':0.0}, 'num_steps':num_seconds*sampling_frequency}
     cross_the_gate_steps = 0
-    tasks[2] = cross_the_gate_info
+    tasks['cross_the_gate'] = cross_the_gate_info
 
     landing = False
-    landing_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':0.0, 'position.z':0.0, 'attitudeRate.yaw':0.0}, 'num_steps':1000}
-    tasks[3] = landing_info
+    landing_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':0.0, 'velocity.z':-0.1, 'attitudeRate.yaw':0.0}}
+    landing_steps = 0
+    tasks['land'] = landing_info
 
-    dataset = {'info':tasks, 'sampling_frequency':sampling_frequency, 'max_hovering_steps':max_hovering_steps}
-    
+    dataset = {'info':None, 'sampling_frequency':sampling_frequency, 'corner_detection': False}
+
     ########### ------------------ TASKS ------------------ ###########
 
     # OpenCV show images
     cv2.startWindowThread()
-    cv2.namedWindow("preview")
+    cv2.namedWindow("Drone Camera")
     colors = ['r', 'b', 'g', 'y']
     
     ########### ------------------ VISUAL SERVOING ------------------ ###########
@@ -221,6 +248,19 @@ if __name__ == '__main__':
     err = np.inf
 
     ########### ------------------ VISUAL SERVOING ------------------ ###########
+
+    ########### ------------------ SAVING THINGS ------------------ ###########
+    
+    dataset['drone'] = {'starting_position': crazyflie_node.getField('translation').getSFVec3f(),
+                        'starting_rotation': crazyflie_node.getField('rotation').getSFRotation(),
+                        'camera_drone_tr': camera_node.getField('translation').getSFVec3f()}
+    dataset['gate'] = {'corners':{'tl':tl, 'bl':bl, 'br':br, 'tr':tr},
+                    'position': gate_node.getField('translation').getSFVec3f(),
+                        'rotation': gate_node.getField('rotation').getSFRotation()}
+    dataset['camera'] = {'f':f, 'pixel_size':pixel_size, 'img_size':img_size }
+    dataset['ibvs'] = {'lambda': lmda, 'threshold': thresh, 'Z':{'estimated':False, 'value':Z}}
+    
+    ########### ------------------ SAVING THINGS ------------------ ###########
 
     height_desired = take_off_info['setpoints']['position.z']
 
@@ -283,30 +323,35 @@ if __name__ == '__main__':
         w, h = camera.getWidth(), camera.getHeight()
         cameraData = camera.getImage()  # Note: uint8 string
         image = np.frombuffer(cameraData, np.uint8).reshape(h, w, 4) # BGR, alpha (transparency)
-
+        
+        img = img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) # gray-scale image
+    
         if take_off:
             
-            info = tasks[0] # take_off_info
+            info = tasks['take_off'] # take_off_info
             
             # print(info)
 
             isclose = np.isclose(z_global, info['setpoints']['position.z'], rtol=1e-2)
             if isclose and prev_step:
-                print(True)
-                print("prev_step", prev_step)
+                # print(True)
+                # print("prev_step", prev_step)
                 if prev_step:
-                    hovering_steps += 1
+                    print('Hovering...')
+                    hovering += 1
                     prev_step = isclose
-                    if hovering_steps >= 500:
+                    if hovering >= hovering_steps:
                         take_off = False
                         visual_servoing = True
+                        info['hovering_steps'] = hovering # Save the hovering number of steps
+                        info['ending_step'] = it_idx
                         print("Going in front of the gate...")
                         # break
             else:
-                hovering_steps = 0
+                hovering = 0
                 prev_step = isclose
         
-            print(hovering_steps)
+            # print(hovering_steps)
             
             # Setpoints fashion (only in velocity)
             forward_desired = info['setpoints']['velocity.x']
@@ -323,9 +368,12 @@ if __name__ == '__main__':
                                     roll, pitch, yaw_rate,
                                     altitude, v_x, v_y, gains)
         
+            cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+            cv2.waitKey(timestep)
+
         elif visual_servoing:
             
-            info = tasks[1]
+            info = tasks['visual_servoing']
             
             # print(info)
             
@@ -340,28 +388,37 @@ if __name__ == '__main__':
 
             extrinsic_matrix = extrinsic_matrix_world_drone@extrinsic_matrix_drone_camera
             ########### ------------------ ROTATIONS ------------------ ###########
-            
-            # print(roll, pitch, yaw)
-            
+                        
             T_C = SE3(wd_tr)*SE3.RPY(roll,pitch,yaw)*SE3(dc_tr)*SE3.RPY(-np.pi/2, 0, -np.pi/2)
-            # print(T_C)
-            # print(wd_tr)
             p_detected = cam.project_point(P, pose=SE3(T_C, check=False)) 
-            # print(p_detected)
+            
             ########### ------------------ VISUAL SERVOING ------------------ ###########
+            
             # image-plane error
             try:
+                
                 e = pd - p_detected
                 err = np.linalg.norm(e)
+                
                 print(f"Error: {err:.2f}")
                 
                 if err <= thresh:
+                    
                     visual_servoing = False
-                    tasks[2]['setpoints']['position.z'] = z_global
                     cross_the_gate = True
+                    
+                    # Save the current altitude in order to pass the gate
+                    # tasks['cross_the_gate']['setpoints']['position.z'] = z_global 
+                    # Now set as velocity.z = 0.0
+
+                    info['ending_step'] = it_idx
+                    
                     print("Crossing the gate...")
+            
             except Exception as e:
+                
                 print(e)
+                
                 continue
             
             # stacked image Jacobian
@@ -404,36 +461,54 @@ if __name__ == '__main__':
                 x, y = p_detected[:,id]
                 image = cv2.circle(image, (int(x),int(y)), radius=2, color=(255, 255, 255), thickness=-1)
 
-            cv2.imshow("preview", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+                if collect_data:
+                    # Save the image
+                    cv2.imwrite(imgs_ibvs_folder+f'/img_{it_idx}.png', cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+    
+            cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
             cv2.waitKey(timestep)
             
+            ########### ------------------ SAVING THINGS -------------------- ########### 
+
+            sample = {}
+            sample['ibvs_velocities_body_frame'] = [ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z]
+            sample['target_points'] = pd
+            sample['detected_points'] = p_detected
+            sample['ibvs_error'] = err
+            data['IBVS'] = sample
+        
+            ########### ------------------ SAVING THINGS -------------------- ###########
+    
+
         elif cross_the_gate:
             
-            info = tasks[2]
+            info = tasks['cross_the_gate']
             
             # print(info)
             
             if cross_the_gate_steps >= info['num_steps']:
                 
-                hovering_steps += 1
+                hovering += 1
 
                 # Setpoints fashion (only in velocity)
                 forward_desired = 0.0
                 sideways_desired = 0.0
-                height_desired = info['setpoints']['position.z']
+                height_diff_desired = 0.0
                 yaw_desired = info['setpoints']['attitudeRate.yaw']
                 
-                if hovering_steps >= 500:
+                if hovering >= hovering_steps:
                     cross_the_gate = False
+                    info['hovering_steps'] = hovering
+                    info['ending_step'] = it_idx
                     landing = True
                     print("Landing...")
             else:
-                hovering_steps = 0
+                hovering = 0
 
                 # Setpoints fashion (only in velocity)
                 forward_desired = info['setpoints']['velocity.x']
                 sideways_desired = info['setpoints']['velocity.y']
-                height_desired = info['setpoints']['position.z']
+                height_diff_desired = info['setpoints']['velocity.z']
                 yaw_desired = info['setpoints']['attitudeRate.yaw']
             
             # New height. Integrate v_z to get the next position.
@@ -447,16 +522,25 @@ if __name__ == '__main__':
             # print(f'{cross_the_gate_steps}/{info["num_steps"]}')
             cross_the_gate_steps += 1
 
+            cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+            cv2.waitKey(timestep)
+
         elif landing:
             
-            info = tasks[3]
+            info = tasks['land']
             
             # print(info)
             
             # Setpoints fashion (only in velocity)
             forward_desired = info['setpoints']['velocity.x']
             sideways_desired = info['setpoints']['velocity.y']
-            height_desired = 0
+            height_diff_desired = info['setpoints']['velocity.z']
+            
+            if landing_steps == 0:
+                # Count the number of steps necessary to land when the velocity is height_diff_desired (0.1 m/s)
+                num_steps = int(np.ceil((z_global / abs(height_diff_desired)) * sampling_frequency))
+                info['num_steps'] = num_steps
+            
             yaw_desired = info['setpoints']['attitudeRate.yaw']
             
             # New height. Integrate v_z to get the next position.
@@ -467,12 +551,26 @@ if __name__ == '__main__':
                                     yaw_desired, height_desired,
                                     roll, pitch, yaw_rate,
                                     altitude, v_x, v_y, gains)
-            
-            if np.isclose(z_global, height_desired):
-                landing = False
 
+            cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+            cv2.waitKey(timestep)
+
+            if landing_steps >= num_steps:
+                info['ending_step'] = it_idx
+                landing = False
+                motor_power = [0,0,0,0] # Switch off the motors
+                m1_motor.setVelocity(-motor_power[0])
+                m2_motor.setVelocity(motor_power[1])
+                m3_motor.setVelocity(-motor_power[2])
+                m4_motor.setVelocity(motor_power[3])
+                print("Landed!")
+            
+            # print(f'{landing_steps}/{info["num_steps"]}')
+            
+            landing_steps += 1
+        
         else:
-            print("Landed!")    
+            print("No tasks! Controller off.")
             break # No more tasks
 
         
@@ -524,7 +622,13 @@ if __name__ == '__main__':
                           'm2':motor_power[1],
                           'm3':-motor_power[2],
                           'm4':motor_power[3],}
-        
+
+        if collect_data:
+            
+            # Save image
+            path = f'{imgs_folder}/img_{it_idx}.png'
+            cv2.imwrite(path, img) # gray-scale image
+
         # Save data
         dataset[it_idx] = data
 
@@ -532,21 +636,14 @@ if __name__ == '__main__':
         
         it_idx += 1
         
+    dataset['info'] = tasks
+
     import pickle, os
 
     ########### ------------------ SAVING THINGS -------------------- ###########
-    
-    # Set to True if you want to collect data
-    collect_data = False
 
     if collect_data:
         
-        parent_folder = '../../datasets/EXP-4-CRAZYFLIE-CONTROLLERS-TEST-PYTHON'
-        folder = parent_folder +'/tests/control_z_position'+ '/03_controller_py_test'
-
-        if not os.path.isdir(folder):
-            os.makedirs(folder)
-
         print("Saving data...")
         with open(folder + '/data.pickle', 'wb') as f:
             pickle.dump(dataset, f, protocol=pickle.HIGHEST_PROTOCOL)
