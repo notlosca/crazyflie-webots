@@ -53,7 +53,7 @@ FLYING_ATTITUDE = 1
 ########### ------------------ SAVING THINGS -------------------- ###########
     
 # Set to True if you want to collect data
-collect_data = True
+collect_data = False
 
 if collect_data:
         
@@ -314,10 +314,15 @@ if __name__ == '__main__':
         ########### ------------------ SAVING THINGS -------------------- ###########
 
         ## Get body fixed velocities
-        cosyaw = cos(yaw)
-        sinyaw = sin(yaw)
-        v_x = v_x_global * cosyaw + v_y_global * sinyaw
-        v_y = - v_x_global * sinyaw + v_y_global * cosyaw
+
+        rotation_matrix_world_drone = rotation.rotation_matrix(roll, pitch, yaw)
+        wd_tr = np.array([x_global, y_global, z_global])
+        extrinsic_matrix_world_drone = rotation.get_extrinsic_matrix(rotation_matrix_world_drone, translation_vector=wd_tr)
+
+        v_global = np.array([v_x_global, v_y_global, v_z_global, roll_rate, pitch_rate, yaw_rate])
+        twist_world_drone = geometry.velocity_twist_matrix(rotation_matrix_world_drone.T, np.zeros(shape=(3,)))
+        v_drone_state = twist_world_drone@v_global
+        v_x, v_y, v_z = v_drone_state[:3] # Body velocities 
 
         # CAMERA IMAGES
         w, h = camera.getWidth(), camera.getHeight()
@@ -610,11 +615,12 @@ if __name__ == '__main__':
         ########### ------------------ SAVING THINGS -------------------- ###########
 
         data['STATE'] = {'POSITION': (x_global, y_global, z_global), 
-                        'VELOCITY': (v_x_global, v_y_global, v_z_global),
+                        'VELOCITY_GLOBAL': (v_x_global, v_y_global, v_z_global),
+                        'VELOCITY_BODY': (v_x, v_y, v_z),
                         'ATTITUDE': (roll, pitch, yaw)}
         data['SENSOR'] = {'ATTITUDE-RATE': (roll_rate, pitch_rate, yaw_rate)}
         data['SETPOINT'] = {'POSITION': (None, None, height_desired),
-                            'VELOCITY': (forward_desired, sideways_desired, height_diff_desired),
+                            'VELOCITY_BODY': (forward_desired, sideways_desired, height_diff_desired),
                             'ATTITUDE': (None, None, None),
                             'ATTITUDE-RATE': (None, None, yaw_desired)}
         
