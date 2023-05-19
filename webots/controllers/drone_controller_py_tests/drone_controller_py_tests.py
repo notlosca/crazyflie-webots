@@ -58,7 +58,7 @@ collect_data = False
 if collect_data:
         
     parent_folder = '../../datasets/EXP-5-IBVS'
-    folder = parent_folder +'/tests/'+ '00_gt_test'
+    folder = parent_folder +'/tests/'+ '01_corner_det_test'
 
     imgs_folder = f'{folder}/imgs/'
     imgs_ibvs_folder = f'{folder}/imgs_ibvs/'
@@ -199,6 +199,10 @@ if __name__ == '__main__':
     tasks['take_off'] = take_off_info
 
     visual_servoing = False
+    # old_p_detected = None
+    detection = np.zeros(shape=(3,2,4))
+    filter = {'alpha':.8, 'order':1}
+    vs_counter = 0
     tasks['visual_servoing'] = {'visual_servoing':True}
     
     cross_the_gate = False
@@ -395,8 +399,53 @@ if __name__ == '__main__':
             ########### ------------------ ROTATIONS ------------------ ###########
                         
             T_C = SE3(wd_tr)*SE3.RPY(roll,pitch,yaw)*SE3(dc_tr)*SE3.RPY(-np.pi/2, 0, -np.pi/2)
-            p_detected = cam.project_point(P, pose=SE3(T_C, check=False)) 
+            GT_p_detected = cam.project_point(P, pose=SE3(T_C, check=False)) 
             
+            # p_detected = corner.detect_corners(img)
+            
+            # p_detected = GT_p_detected
+            # print("\n\nGT_p_detected\n", GT_p_detected)
+            # print('\n\np_detected\n', p_detected)
+
+            current_p_detected = corner.detect_corners(img)
+
+            if vs_counter == 0:
+                detection[0] = current_p_detected
+                p_detected = detection[0]
+            elif vs_counter == 1:
+                detection[1] = detection[0]
+                detection[0] = current_p_detected
+                p_detected = corner.weigh_detection(detection, order=1, alpha=filter['alpha'])
+            else:
+                detection[2] = detection[1]
+                detection[1] = detection[0]
+                detection[0] = current_p_detected
+                p_detected = corner.weigh_detection(detection, order=filter['order'], alpha=filter['alpha'])
+            
+            vs_counter += 1
+            
+            print(detection)
+
+            # if not vs_init:
+            #     # First time, we initialize old_p_detected
+            #     current_p_detected = corner.detect_corners(img)
+            #     old_p_detected = current_p_detected
+            #     vs_init = True
+            # else:
+            #     current_p_detected = corner.detect_corners(img)
+            #     # If none, we consider the 
+            #     if current_p_detected is None:
+            #         p_detected = old_p_detected
+            #     else:
+            #         # 1: Consider only the current state; 0: Consider only the previous one
+            #         p_detected = corner.weigh_detection(current_p_detected, old_p_detected, alpha=0.5) 
+            #         old_p_detected = p_detected
+
+            try:
+                print("\n\nGT_p_detected - p_detected\n", GT_p_detected-p_detected)
+            except Exception as e:
+                print(e)
+
             ########### ------------------ VISUAL SERVOING ------------------ ###########
             
             # image-plane error
@@ -453,19 +502,20 @@ if __name__ == '__main__':
             
             # Show image
             for id, col in enumerate(colors):
-                tl = pd[:,0]
-                bl = pd[:,1]
-                br = pd[:,2]
-                tr = pd[:,-1]
-                x, y = pd[:,id]
+                tl = pd[:,0] # 0
+                bl = pd[:,1] # 1
+                br = pd[:,2] # 2
+                tr = pd[:,3] # 3 
+                x, y = pd[:,id] # Desired
+                image = cv2.putText(image, text=str(id), org = (int(x),int(y)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.5, color = (255,255,255), thickness = 1)
                 image = cv2.circle(image, (int(x),int(y)), radius=2, color=(255, 255, 255), thickness=1)
                 image = cv2.line(image, (int(tl[0]), int(tl[1])), (int(tr[0]), int(tr[1])), color=(255, 255, 255), thickness=1) # top-left, top-right
                 image = cv2.line(image, (int(tr[0]), int(tr[1])), (int(br[0]), int(br[1])), color=(255, 255, 255), thickness=1) # top-right, bottom-right
                 image = cv2.line(image, (int(br[0]), int(br[1])), (int(bl[0]), int(bl[1])), color=(255, 255, 255), thickness=1) # bottom-left, top-right
                 image = cv2.line(image, (int(bl[0]), int(bl[1])), (int(tl[0]), int(tl[1])), color=(255, 255, 255), thickness=1) # bottom-left, top-left
-                x, y = p_detected[:,id]
+                x, y = p_detected[:,id] # Detected
                 image = cv2.circle(image, (int(x),int(y)), radius=2, color=(255, 255, 255), thickness=-1)
-
+                image = cv2.putText(image, text=str(id), org = (int(x),int(y)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.5, color = (255,255,255), thickness = 1)
                 if collect_data:
                     # Save the image
                     cv2.imwrite(imgs_ibvs_folder+f'/img_{it_idx}.png', cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
@@ -479,6 +529,7 @@ if __name__ == '__main__':
             sample['ibvs_velocities_body_frame'] = [ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z]
             sample['target_points'] = pd
             sample['detected_points'] = p_detected
+            sample['GT_detected_points'] = GT_p_detected
             sample['ibvs_error'] = err
             data['IBVS'] = sample
         
