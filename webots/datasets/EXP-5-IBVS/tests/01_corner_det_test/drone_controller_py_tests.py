@@ -580,8 +580,8 @@ if __name__ == '__main__':
             # Used for analysis purposes. Feel free to comment all the code of this section.
             p_detected = GT_p_detected
 
-            e = pd - p_detected
-            err = np.linalg.norm(e)
+            GT_e = pd - p_detected
+            GT_err = np.linalg.norm(GT_e)
 
             # stacked image Jacobian
             J = cam.visjac_p(p_detected, Z)
@@ -624,6 +624,7 @@ if __name__ == '__main__':
             sample['detected_points'] = p_detected
             sample['GT_detected_points'] = GT_p_detected
             sample['ibvs_error'] = err
+            sample['GT_ibvs_error'] = GT_err
             data['IBVS'] = sample
         
             ########### ------------------ SAVING THINGS -------------------- ###########
