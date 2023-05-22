@@ -39,7 +39,7 @@ random.seed()
 from math import cos, sin, degrees, radians
 from ai import cs
 
-import sys
+import sys, shutil
 sys.path.append('../../../controllers/')
 
 # Import the path for the corner detection module
@@ -58,20 +58,42 @@ collect_data = False
 if collect_data:
         
     parent_folder = '../../datasets/EXP-5-IBVS'
-    folder = parent_folder +'/tests/'+ '01_corner_det_test'
+    folder = parent_folder +'/tests/'+ '01_corner_det_test_no_filter'
 
     imgs_folder = f'{folder}/imgs/'
     imgs_ibvs_folder = f'{folder}/imgs_ibvs/'
+    contours_folder = f'{imgs_ibvs_folder}' + 'contours/'
 
-    if not os.path.isdir(folder):
-        os.makedirs(folder)
-
-    if not os.path.isdir(imgs_folder):
+    try:
+        if os.path.isdir(imgs_folder):
+            shutil.rmtree(imgs_folder)
         os.makedirs(imgs_folder)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise  # This was not a "directory exist" error..
+        else:
+            print(f"Overwriting folder {imgs_folder}")
 
-    if not os.path.isdir(imgs_ibvs_folder):
+    try:
+        if os.path.isdir(imgs_ibvs_folder):
+            shutil.rmtree(imgs_ibvs_folder)
         os.makedirs(imgs_ibvs_folder)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise  # This was not a "directory exist" error..
+        else:
+            print(f"Overwriting folder {imgs_ibvs_folder}")
 
+    try:
+        if os.path.isdir(contours_folder):
+            shutil.rmtree(contours_folder)
+        os.makedirs(contours_folder)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise  # This was not a "directory exist" error..
+        else:
+            print(f"Overwriting folder {contours_folder}")
+    
 ########### ------------------ SAVING THINGS -------------------- ###########
 
 if __name__ == '__main__':
@@ -201,9 +223,13 @@ if __name__ == '__main__':
     visual_servoing = False
     # old_p_detected = None
     detection = np.zeros(shape=(3,2,4))
-    filter = {'alpha':.8, 'order':1}
+    filter = {'alpha':1, 'order':1} # alpha = 1 means ttaking into account only the current detection
     vs_counter = 0
-    tasks['visual_servoing'] = {'visual_servoing':True}
+    track_error = False
+    offset = None
+    errors = np.zeros(shape=(3*sampling_frequency))
+    median_err = np.inf
+    tasks['visual_servoing'] = {'visual_servoing':True, 'corner_detection':True, 'filter':filter, 'next_task_condition':{'median_error':median_err, 'error_array':errors}}
     
     cross_the_gate = False
     num_seconds = 10
@@ -220,9 +246,14 @@ if __name__ == '__main__':
 
     ########### ------------------ TASKS ------------------ ###########
 
-    # OpenCV show images
-    cv2.startWindowThread()
-    cv2.namedWindow("Drone Camera")
+    # # OpenCV show images
+    # cv2.startWindowThread()
+    # cv2.namedWindow("Drone Camera")
+
+    # # OpenCV show images
+    # cv2.startWindowThread()
+    # cv2.namedWindow("Contours")
+
     colors = ['r', 'b', 'g', 'y']
     
     ########### ------------------ VISUAL SERVOING ------------------ ###########
@@ -248,7 +279,7 @@ if __name__ == '__main__':
     lmda = 0.08
 
     thresh = 5e-1
-    thresh = 5
+    thresh = 8
     err = np.inf
 
     ########### ------------------ VISUAL SERVOING ------------------ ###########
@@ -377,8 +408,8 @@ if __name__ == '__main__':
                                     roll, pitch, yaw_rate,
                                     altitude, v_x, v_y, gains)
         
-            cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
-            cv2.waitKey(timestep)
+            # cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+            # cv2.waitKey(timestep)
 
         elif visual_servoing:
             
@@ -407,7 +438,19 @@ if __name__ == '__main__':
             # print("\n\nGT_p_detected\n", GT_p_detected)
             # print('\n\np_detected\n', p_detected)
 
-            current_p_detected = corner.detect_corners(img)
+            current_p_detected, drawing = corner.detect_corners(img, return_drawing=True)
+            if collect_data:
+                try:
+                    # Save the image
+                    cv2.imwrite(contours_folder+f'/img_{it_idx}.png', cv2.cvtColor(drawing, cv2.COLOR_BGR2GRAY))
+                except:
+                    print(e)
+            # try:
+            #     cv2.imshow("Contours", drawing)
+            #     cv2.waitKey(timestep)
+            # except Exception as e:
+            #     # print(e)
+            #     continue
 
             if vs_counter == 0:
                 detection[0] = current_p_detected
@@ -424,7 +467,7 @@ if __name__ == '__main__':
             
             vs_counter += 1
             
-            print(detection)
+            # print(detection)
 
             # if not vs_init:
             #     # First time, we initialize old_p_detected
@@ -441,10 +484,10 @@ if __name__ == '__main__':
             #         p_detected = corner.weigh_detection(current_p_detected, old_p_detected, alpha=0.5) 
             #         old_p_detected = p_detected
 
-            try:
-                print("\n\nGT_p_detected - p_detected\n", GT_p_detected-p_detected)
-            except Exception as e:
-                print(e)
+            # try:
+            #     print("\n\nGT_p_detected - p_detected\n", GT_p_detected-p_detected)
+            # except Exception as e:
+            #     print(e)
 
             ########### ------------------ VISUAL SERVOING ------------------ ###########
             
@@ -455,6 +498,38 @@ if __name__ == '__main__':
                 err = np.linalg.norm(e)
                 
                 print(f"Error: {err:.2f}")
+
+                if err <= 50 and track_error is False:
+                    track_error = True
+                    offset = it_idx
+                    print("Collect errors...")
+                
+                if track_error and median_err > 50:
+                    idx = it_idx - offset
+                    print(f"Collecting errors: {idx}/{errors.shape[-1]}")                    
+                    if idx == len(errors):
+                        median_err = np.median(errors)
+                        print("Median error:", median_err)
+                        if median_err <= 50:
+                            visual_servoing = False
+                            cross_the_gate = True
+                            
+                            # Save the current altitude in order to pass the gate
+                            # tasks['cross_the_gate']['setpoints']['position.z'] = z_global 
+                            # Now set as velocity.z = 0.0
+
+                            info['ending_step'] = it_idx
+                            
+                            print("Crossing the gate...")
+                        else:
+                            # Shift errors
+                            temp = errors[1:]
+                            errors[:-1] = temp
+                            errors[-1] = err
+                    else:
+                        errors[idx] = err
+
+        
                 
                 if err <= thresh:
                     
@@ -500,6 +575,24 @@ if __name__ == '__main__':
                                     roll, pitch, yaw_rate,
                                     altitude, v_x, v_y, gains)
             
+            ########### ------------------ GT VISUAL SERVOING ------------------ ###########
+
+            # Save the velocity and rates output of the visual servoing part using the ground truth
+            # Used for analysis purposes. Feel free to comment all the code of this section.
+            p_detected = GT_p_detected
+
+            e = pd - p_detected
+            err = np.linalg.norm(e)
+
+            # stacked image Jacobian
+            J = cam.visjac_p(p_detected, Z)
+            v_camera = lmda * np.linalg.pinv(J) @ e.T.flatten()
+
+            v_drone = twist_drone_camera@v_camera
+            GT_ibvs_v_x, GT_ibvs_v_y, GT_ibvs_v_z, GT_ibvs_w_x, GT_ibvs_w_y, GT_ibvs_w_z = v_drone
+            
+            ########### ------------------ GT VISUAL SERVOING ------------------ ###########
+
             # Show image
             for id, col in enumerate(colors):
                 tl = pd[:,0] # 0
@@ -520,13 +613,14 @@ if __name__ == '__main__':
                     # Save the image
                     cv2.imwrite(imgs_ibvs_folder+f'/img_{it_idx}.png', cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
     
-            cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
-            cv2.waitKey(timestep)
+            # cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+            # cv2.waitKey(timestep)
             
             ########### ------------------ SAVING THINGS -------------------- ########### 
 
             sample = {}
             sample['ibvs_velocities_body_frame'] = [ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z]
+            sample['GT_ibvs_velocities_body_frame'] = [GT_ibvs_v_x, GT_ibvs_v_y, GT_ibvs_v_z, GT_ibvs_w_x, GT_ibvs_w_y, GT_ibvs_w_z]
             sample['target_points'] = pd
             sample['detected_points'] = p_detected
             sample['GT_detected_points'] = GT_p_detected
@@ -578,8 +672,8 @@ if __name__ == '__main__':
             # print(f'{cross_the_gate_steps}/{info["num_steps"]}')
             cross_the_gate_steps += 1
 
-            cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
-            cv2.waitKey(timestep)
+            # cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+            # cv2.waitKey(timestep)
 
         elif landing:
             
@@ -608,8 +702,8 @@ if __name__ == '__main__':
                                     roll, pitch, yaw_rate,
                                     altitude, v_x, v_y, gains)
 
-            cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
-            cv2.waitKey(timestep)
+            # cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+            # cv2.waitKey(timestep)
 
             if landing_steps >= num_steps:
                 info['ending_step'] = it_idx
