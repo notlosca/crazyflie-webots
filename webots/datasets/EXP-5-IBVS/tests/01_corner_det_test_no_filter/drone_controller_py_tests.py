@@ -432,6 +432,31 @@ if __name__ == '__main__':
             T_C = SE3(wd_tr)*SE3.RPY(roll,pitch,yaw)*SE3(dc_tr)*SE3.RPY(-np.pi/2, 0, -np.pi/2)
             GT_p_detected = cam.project_point(P, pose=SE3(T_C, check=False)) 
             
+            ########### ------------------ GT VISUAL SERVOING ------------------ ###########
+
+            # Save the velocity and rates output of the visual servoing part using the ground truth
+            # Used for analysis purposes. Feel free to comment all the code of this section.
+            p_detected = GT_p_detected
+
+            e = pd - p_detected
+            err = np.linalg.norm(e)
+
+            try:
+                # stacked image Jacobian
+                J = cam.visjac_p(p_detected, Z)
+                v_camera = lmda * np.linalg.pinv(J) @ e.T.flatten()
+            except:
+                # v_camera = np.zeros(shape=(6,))
+                break
+            # Twist velocity from camera frame to drone frame
+            twist_drone_camera = geometry.velocity_twist_matrix(rotation_matrix_drone_camera, dc_tr)
+            v_drone = twist_drone_camera@v_camera
+            GT_ibvs_v_x, GT_ibvs_v_y, GT_ibvs_v_z, GT_ibvs_w_x, GT_ibvs_w_y, GT_ibvs_w_z = v_drone
+            
+            ########### ------------------ GT VISUAL SERVOING ------------------ ###########
+
+
+
             # p_detected = corner.detect_corners(img)
             
             # p_detected = GT_p_detected
@@ -488,7 +513,7 @@ if __name__ == '__main__':
             #     print("\n\nGT_p_detected - p_detected\n", GT_p_detected-p_detected)
             # except Exception as e:
             #     print(e)
-
+            
             ########### ------------------ VISUAL SERVOING ------------------ ###########
             
             # image-plane error
@@ -550,9 +575,13 @@ if __name__ == '__main__':
                 
                 continue
             
-            # stacked image Jacobian
-            J = cam.visjac_p(p_detected, Z)
-            v_camera = lmda * np.linalg.pinv(J) @ e.T.flatten()
+            try:
+                # stacked image Jacobian
+                J = cam.visjac_p(p_detected, Z)
+                v_camera = lmda * np.linalg.pinv(J) @ e.T.flatten()
+            except:
+                # v_camera = np.zeros(shape=(6,))
+                break
 
             # Twist velocity from camera frame to drone frame
             twist_drone_camera = geometry.velocity_twist_matrix(rotation_matrix_drone_camera, dc_tr)
@@ -575,24 +604,6 @@ if __name__ == '__main__':
                                     roll, pitch, yaw_rate,
                                     altitude, v_x, v_y, gains)
             
-            ########### ------------------ GT VISUAL SERVOING ------------------ ###########
-
-            # Save the velocity and rates output of the visual servoing part using the ground truth
-            # Used for analysis purposes. Feel free to comment all the code of this section.
-            p_detected = GT_p_detected
-
-            e = pd - p_detected
-            err = np.linalg.norm(e)
-
-            # stacked image Jacobian
-            J = cam.visjac_p(p_detected, Z)
-            v_camera = lmda * np.linalg.pinv(J) @ e.T.flatten()
-
-            v_drone = twist_drone_camera@v_camera
-            GT_ibvs_v_x, GT_ibvs_v_y, GT_ibvs_v_z, GT_ibvs_w_x, GT_ibvs_w_y, GT_ibvs_w_z = v_drone
-            
-            ########### ------------------ GT VISUAL SERVOING ------------------ ###########
-
             # Show image
             for id, col in enumerate(colors):
                 tl = pd[:,0] # 0
