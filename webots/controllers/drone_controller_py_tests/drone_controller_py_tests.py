@@ -53,12 +53,12 @@ FLYING_ATTITUDE = 1
 ########### ------------------ SAVING THINGS -------------------- ###########
     
 # Set to True if you want to collect data
-collect_data = False
+collect_data = True
 
 if collect_data:
         
     parent_folder = '../../datasets/EXP-5-IBVS'
-    folder = parent_folder +'/tests/'+ '01_corner_det_test_no_filter'
+    folder = parent_folder +'/tests/'+ '01_corner_det_test'
 
     imgs_folder = f'{folder}/imgs/'
     imgs_ibvs_folder = f'{folder}/imgs_ibvs/'
@@ -223,7 +223,7 @@ if __name__ == '__main__':
     visual_servoing = False
     # old_p_detected = None
     detection = np.zeros(shape=(3,2,4))
-    filter = {'alpha':1, 'order':1} # alpha = 1 means ttaking into account only the current detection
+    filter = {'alpha':.5, 'order':1}
     vs_counter = 0
     track_error = False
     offset = None
@@ -432,31 +432,6 @@ if __name__ == '__main__':
             T_C = SE3(wd_tr)*SE3.RPY(roll,pitch,yaw)*SE3(dc_tr)*SE3.RPY(-np.pi/2, 0, -np.pi/2)
             GT_p_detected = cam.project_point(P, pose=SE3(T_C, check=False)) 
             
-            ########### ------------------ GT VISUAL SERVOING ------------------ ###########
-
-            # Save the velocity and rates output of the visual servoing part using the ground truth
-            # Used for analysis purposes. Feel free to comment all the code of this section.
-            p_detected = GT_p_detected
-
-            e = pd - p_detected
-            err = np.linalg.norm(e)
-
-            try:
-                # stacked image Jacobian
-                J = cam.visjac_p(p_detected, Z)
-                v_camera = lmda * np.linalg.pinv(J) @ e.T.flatten()
-                # Twist velocity from camera frame to drone frame
-                twist_drone_camera = geometry.velocity_twist_matrix(rotation_matrix_drone_camera, dc_tr)
-                v_drone = twist_drone_camera@v_camera
-            except:
-                v_drone = np.zeros(shape=(6,))
-            
-            GT_ibvs_v_x, GT_ibvs_v_y, GT_ibvs_v_z, GT_ibvs_w_x, GT_ibvs_w_y, GT_ibvs_w_z = v_drone
-            
-            ########### ------------------ GT VISUAL SERVOING ------------------ ###########
-
-
-
             # p_detected = corner.detect_corners(img)
             
             # p_detected = GT_p_detected
@@ -470,6 +445,7 @@ if __name__ == '__main__':
                     cv2.imwrite(contours_folder+f'/img_{it_idx}.png', cv2.cvtColor(drawing, cv2.COLOR_BGR2GRAY))
                 except:
                     print(e)
+            
             # try:
             #     cv2.imshow("Contours", drawing)
             #     cv2.waitKey(timestep)
@@ -513,7 +489,7 @@ if __name__ == '__main__':
             #     print("\n\nGT_p_detected - p_detected\n", GT_p_detected-p_detected)
             # except Exception as e:
             #     print(e)
-            
+
             ########### ------------------ VISUAL SERVOING ------------------ ###########
             
             # image-plane error
@@ -575,39 +551,13 @@ if __name__ == '__main__':
                 
                 continue
             
-            try:
-                # stacked image Jacobian
-                J = cam.visjac_p(p_detected, Z)
-                v_camera = lmda * np.linalg.pinv(J) @ e.T.flatten()
-                # Twist velocity from camera frame to drone frame
-                twist_drone_camera = geometry.velocity_twist_matrix(rotation_matrix_drone_camera, dc_tr)
-                v_drone = twist_drone_camera@v_camera
+            # stacked image Jacobian
+            J = cam.visjac_p(p_detected, Z)
+            v_camera = lmda * np.linalg.pinv(J) @ e.T.flatten()
 
-                # Show image
-                for id, col in enumerate(colors):
-                    tl = pd[:,0] # 0
-                    bl = pd[:,1] # 1
-                    br = pd[:,2] # 2
-                    tr = pd[:,3] # 3 
-                    x, y = pd[:,id] # Desired
-                    image = cv2.putText(image, text=str(id), org = (int(x),int(y)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.5, color = (255,255,255), thickness = 1)
-                    image = cv2.circle(image, (int(x),int(y)), radius=2, color=(255, 255, 255), thickness=1)
-                    image = cv2.line(image, (int(tl[0]), int(tl[1])), (int(tr[0]), int(tr[1])), color=(255, 255, 255), thickness=1) # top-left, top-right
-                    image = cv2.line(image, (int(tr[0]), int(tr[1])), (int(br[0]), int(br[1])), color=(255, 255, 255), thickness=1) # top-right, bottom-right
-                    image = cv2.line(image, (int(br[0]), int(br[1])), (int(bl[0]), int(bl[1])), color=(255, 255, 255), thickness=1) # bottom-left, top-right
-                    image = cv2.line(image, (int(bl[0]), int(bl[1])), (int(tl[0]), int(tl[1])), color=(255, 255, 255), thickness=1) # bottom-left, top-left
-                    x, y = p_detected[:,id] # Detected
-                    image = cv2.circle(image, (int(x),int(y)), radius=2, color=(255, 255, 255), thickness=-1)
-                    image = cv2.putText(image, text=str(id), org = (int(x),int(y)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.5, color = (255,255,255), thickness = 1)
-                    if collect_data:
-                        # Save the image
-                        cv2.imwrite(imgs_ibvs_folder+f'/img_{it_idx}.png', cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
-    
-
-            except:
-                v_drone = np.zeros(shape=(6,))
-                # break
-
+            # Twist velocity from camera frame to drone frame
+            twist_drone_camera = geometry.velocity_twist_matrix(rotation_matrix_drone_camera, dc_tr)
+            v_drone = twist_drone_camera@v_camera
             ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z = v_drone
             
             forward_desired = ibvs_v_x
@@ -626,25 +576,43 @@ if __name__ == '__main__':
                                     roll, pitch, yaw_rate,
                                     altitude, v_x, v_y, gains)
             
-            # # Show image
-            # for id, col in enumerate(colors):
-            #     tl = pd[:,0] # 0
-            #     bl = pd[:,1] # 1
-            #     br = pd[:,2] # 2
-            #     tr = pd[:,3] # 3 
-            #     x, y = pd[:,id] # Desired
-            #     image = cv2.putText(image, text=str(id), org = (int(x),int(y)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.5, color = (255,255,255), thickness = 1)
-            #     image = cv2.circle(image, (int(x),int(y)), radius=2, color=(255, 255, 255), thickness=1)
-            #     image = cv2.line(image, (int(tl[0]), int(tl[1])), (int(tr[0]), int(tr[1])), color=(255, 255, 255), thickness=1) # top-left, top-right
-            #     image = cv2.line(image, (int(tr[0]), int(tr[1])), (int(br[0]), int(br[1])), color=(255, 255, 255), thickness=1) # top-right, bottom-right
-            #     image = cv2.line(image, (int(br[0]), int(br[1])), (int(bl[0]), int(bl[1])), color=(255, 255, 255), thickness=1) # bottom-left, top-right
-            #     image = cv2.line(image, (int(bl[0]), int(bl[1])), (int(tl[0]), int(tl[1])), color=(255, 255, 255), thickness=1) # bottom-left, top-left
-            #     x, y = p_detected[:,id] # Detected
-            #     image = cv2.circle(image, (int(x),int(y)), radius=2, color=(255, 255, 255), thickness=-1)
-            #     image = cv2.putText(image, text=str(id), org = (int(x),int(y)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.5, color = (255,255,255), thickness = 1)
-            #     if collect_data:
-            #         # Save the image
-            #         cv2.imwrite(imgs_ibvs_folder+f'/img_{it_idx}.png', cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+            ########### ------------------ GT VISUAL SERVOING ------------------ ###########
+
+            # Save the velocity and rates output of the visual servoing part using the ground truth
+            # Used for analysis purposes. Feel free to comment all the code of this section.
+            p_detected = GT_p_detected
+
+            GT_e = pd - p_detected
+            GT_err = np.linalg.norm(GT_e)
+
+            # stacked image Jacobian
+            J = cam.visjac_p(p_detected, Z)
+            v_camera = lmda * np.linalg.pinv(J) @ e.T.flatten()
+
+            v_drone = twist_drone_camera@v_camera
+            GT_ibvs_v_x, GT_ibvs_v_y, GT_ibvs_v_z, GT_ibvs_w_x, GT_ibvs_w_y, GT_ibvs_w_z = v_drone
+            
+            ########### ------------------ GT VISUAL SERVOING ------------------ ###########
+
+            # Show image
+            for id, col in enumerate(colors):
+                tl = pd[:,0] # 0
+                bl = pd[:,1] # 1
+                br = pd[:,2] # 2
+                tr = pd[:,3] # 3 
+                x, y = pd[:,id] # Desired
+                image = cv2.putText(image, text=str(id), org = (int(x),int(y)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.5, color = (255,255,255), thickness = 1)
+                image = cv2.circle(image, (int(x),int(y)), radius=2, color=(255, 255, 255), thickness=1)
+                image = cv2.line(image, (int(tl[0]), int(tl[1])), (int(tr[0]), int(tr[1])), color=(255, 255, 255), thickness=1) # top-left, top-right
+                image = cv2.line(image, (int(tr[0]), int(tr[1])), (int(br[0]), int(br[1])), color=(255, 255, 255), thickness=1) # top-right, bottom-right
+                image = cv2.line(image, (int(br[0]), int(br[1])), (int(bl[0]), int(bl[1])), color=(255, 255, 255), thickness=1) # bottom-left, top-right
+                image = cv2.line(image, (int(bl[0]), int(bl[1])), (int(tl[0]), int(tl[1])), color=(255, 255, 255), thickness=1) # bottom-left, top-left
+                x, y = p_detected[:,id] # Detected
+                image = cv2.circle(image, (int(x),int(y)), radius=2, color=(255, 255, 255), thickness=-1)
+                image = cv2.putText(image, text=str(id), org = (int(x),int(y)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.5, color = (255,255,255), thickness = 1)
+                if collect_data:
+                    # Save the image
+                    cv2.imwrite(imgs_ibvs_folder+f'/img_{it_idx}.png', cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
     
             # cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
             # cv2.waitKey(timestep)
@@ -658,6 +626,7 @@ if __name__ == '__main__':
             sample['detected_points'] = p_detected
             sample['GT_detected_points'] = GT_p_detected
             sample['ibvs_error'] = err
+            sample['GT_ibvs_error'] = GT_err
             data['IBVS'] = sample
         
             ########### ------------------ SAVING THINGS -------------------- ###########
