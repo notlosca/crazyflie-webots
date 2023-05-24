@@ -646,11 +646,6 @@ if __name__ == '__main__':
             twist_drone_camera = geometry.velocity_twist_matrix(rotation_matrix_drone_camera, dc_tr)
             v_drone = twist_drone_camera@v_camera
             ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z = v_drone
-            
-            forward_desired = ibvs_v_x
-            sideways_desired = ibvs_v_y
-            yaw_desired = ibvs_w_z
-            height_diff_desired = ibvs_v_z
 
             ########### ------------------ DETECTION VISUAL SERVOING ------------------ ###########
             
