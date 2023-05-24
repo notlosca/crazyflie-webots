@@ -58,7 +58,7 @@ collect_data = False
 if collect_data:
         
     parent_folder = '../../datasets/EXP-5-IBVS'
-    folder = parent_folder +'/tests_gt_median_with_filter_for_simulator_behaviour/'+ '01_gt_test'
+    folder = parent_folder +'/tests_gt_median_with_filter_for_simulator_behaviour/'+ '00_gt_test'
 
     imgs_folder = f'{folder}/imgs/'
     imgs_ibvs_folder = f'{folder}/imgs_ibvs/'
@@ -246,9 +246,9 @@ if __name__ == '__main__':
 
     ########### ------------------ TASKS ------------------ ###########
 
-    # OpenCV show images
-    cv2.startWindowThread()
-    cv2.namedWindow("Drone Camera")
+    # # OpenCV show images
+    # cv2.startWindowThread()
+    # cv2.namedWindow("Drone Camera")
 
     # # OpenCV show images
     # cv2.startWindowThread()
@@ -408,8 +408,8 @@ if __name__ == '__main__':
                                     roll, pitch, yaw_rate,
                                     altitude, v_x, v_y, gains)
         
-            cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
-            cv2.waitKey(timestep)
+            # cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+            # cv2.waitKey(timestep)
 
         elif visual_servoing:
             
@@ -659,11 +659,6 @@ if __name__ == '__main__':
             twist_drone_camera = geometry.velocity_twist_matrix(rotation_matrix_drone_camera, dc_tr)
             v_drone = twist_drone_camera@v_camera
             ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z = v_drone
-            
-            forward_desired = ibvs_v_x
-            sideways_desired = ibvs_v_y
-            yaw_desired = ibvs_w_z
-            height_diff_desired = ibvs_v_z
 
             ########### ------------------ DETECTION VISUAL SERVOING ------------------ ###########
             
@@ -687,8 +682,8 @@ if __name__ == '__main__':
                     # Save the image
                     cv2.imwrite(imgs_ibvs_folder+f'/img_{it_idx}.png', cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
     
-            cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
-            cv2.waitKey(timestep)
+            # cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+            # cv2.waitKey(timestep)
             
             ########### ------------------ SAVING THINGS -------------------- ########### 
 
@@ -777,8 +772,8 @@ if __name__ == '__main__':
                                     roll, pitch, yaw_rate,
                                     altitude, v_x, v_y, gains)
 
-            cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
-            cv2.waitKey(timestep)
+            # cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+            # cv2.waitKey(timestep)
 
             if landing_steps >= num_steps:
                 info['ending_step'] = it_idx

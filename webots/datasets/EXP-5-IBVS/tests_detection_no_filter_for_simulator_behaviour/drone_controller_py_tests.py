@@ -598,9 +598,9 @@ if __name__ == '__main__':
                     image = cv2.putText(image, text=str(id), org = (int(x),int(y)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.5, color = (255,255,255), thickness = 1)
                 except Exception as e:
                     print(e)
-                # if collect_data:
-                #     # Save the image
-                #     cv2.imwrite(imgs_ibvs_folder+f'/img_{it_idx}.png', cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+                if collect_data:
+                    # Save the image
+                    cv2.imwrite(imgs_ibvs_folder+f'/img_{it_idx}.png', cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
 
             try:
                 # stacked image Jacobian
@@ -815,11 +815,11 @@ if __name__ == '__main__':
                           'm3':-motor_power[2],
                           'm4':motor_power[3],}
 
-        # if collect_data:
-        #     
-        #     # Save image
-        #     path = f'{imgs_folder}/img_{it_idx}.png'
-        #     cv2.imwrite(path, img) # gray-scale image
+        if collect_data:
+            
+            # Save image
+            path = f'{imgs_folder}/img_{it_idx}.png'
+            cv2.imwrite(path, img) # gray-scale image
 
         # Save data
         dataset[it_idx] = data
