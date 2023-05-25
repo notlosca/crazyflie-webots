@@ -223,7 +223,7 @@ if __name__ == '__main__':
     visual_servoing = False
     # old_p_detected = None
     detection = np.zeros(shape=(3,2,4))
-    filter = {'alpha':1, 'order':1} # alpha = 1 means ttaking into account only the current detection
+    filter = {'alpha':1, 'order':1} # alpha = 1 means taking into account only the current detection
     vs_counter = 0
     track_error = False
     offset = None
