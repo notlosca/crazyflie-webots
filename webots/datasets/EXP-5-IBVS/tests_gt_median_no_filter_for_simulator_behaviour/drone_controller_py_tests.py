@@ -58,7 +58,7 @@ collect_data = False
 if collect_data:
         
     parent_folder = '../../datasets/EXP-5-IBVS'
-    folder = parent_folder +'/tests_gt_median_no_filter_for_simulator_behaviour/'+ '01_gt_test'
+    folder = parent_folder +'/tests_gt_median_no_filter_for_simulator_behaviour/'+ '02_gt_test'
 
     imgs_folder = f'{folder}/imgs/'
     imgs_ibvs_folder = f'{folder}/imgs_ibvs/'
@@ -223,7 +223,7 @@ if __name__ == '__main__':
     visual_servoing = False
     # old_p_detected = None
     detection = np.zeros(shape=(3,2,4))
-    filter = {'alpha':.5, 'order':1}
+    filter = {'alpha':1, 'order':1}
     vs_counter = 0
     track_error = False
     offset = None
@@ -433,8 +433,21 @@ if __name__ == '__main__':
                        
             T_C = SE3(wd_tr)*SE3.RPY(roll,pitch,yaw)*SE3(dc_tr)*SE3.RPY(-np.pi/2, 0, -np.pi/2)
             GT_p_detected = cam.project_point(P, pose=SE3(T_C, check=False)) 
+            current_p_detected = GT_p_detected
+            if vs_counter == 0:
+                detection[0] = current_p_detected
+                p_detected = detection[0]
+            elif vs_counter == 1:
+                detection[1] = detection[0]
+                detection[0] = current_p_detected
+                p_detected = corner.weigh_detection(detection, order=1, alpha=filter['alpha'])
+            else:
+                detection[2] = detection[1]
+                detection[1] = detection[0]
+                detection[0] = current_p_detected
+                p_detected = corner.weigh_detection(detection, order=filter['order'], alpha=filter['alpha'])
             
-            p_detected = GT_p_detected
+            vs_counter += 1
             
             # image-plane error
             try:
