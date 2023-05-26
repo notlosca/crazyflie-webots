@@ -223,7 +223,7 @@ if __name__ == '__main__':
     visual_servoing = False
     # old_p_detected = None
     detection = np.zeros(shape=(3,2,4))
-    filter = {'alpha':.5, 'order':1}
+    filter = {'alpha':0.5, 'order':1}
     vs_counter = 0
     track_error = False
     offset = None
@@ -447,7 +447,7 @@ if __name__ == '__main__':
                 detection[0] = current_p_detected
                 p_detected = corner.weigh_detection(detection, order=filter['order'], alpha=filter['alpha'])
             
-            vs_counter += 1
+            # vs_counter += 1 # We increment it later
             
             # image-plane error
             try:
@@ -541,7 +541,7 @@ if __name__ == '__main__':
             # print("\n\nGT_p_detected\n", GT_p_detected)
             # print('\n\np_detected\n', p_detected)
 
-            current_p_detected, drawing = corner.detect_corners(img, return_drawing=True)
+            current_p_detected = corner.detect_corners(img, return_drawing=False)
             # if collect_data:
             #         # Save the image
             #         cv2.imwrite(contours_folder+f'/img_{it_idx}.png', cv2.cvtColor(drawing, cv2.COLOR_BGR2GRAY))
@@ -567,7 +567,7 @@ if __name__ == '__main__':
                 detection[0] = current_p_detected
                 p_detected = corner.weigh_detection(detection, order=filter['order'], alpha=filter['alpha'])
             
-            vs_counter += 1
+            vs_counter += 1 # We now increment it!
             
             # print(detection)
 
@@ -632,18 +632,18 @@ if __name__ == '__main__':
 
         
                 
-                if err <= thresh:
-                    
-                    visual_servoing = False
-                    cross_the_gate = True
-                    
-                    # Save the current altitude in order to pass the gate
-                    # tasks['cross_the_gate']['setpoints']['position.z'] = z_global 
-                    # Now set as velocity.z = 0.0
-
-                    info['ending_step'] = it_idx
-                    
-                    print("Crossing the gate...")
+                # if err <= thresh:
+                #     
+                #     visual_servoing = False
+                #     cross_the_gate = True
+                #     
+                #     # Save the current altitude in order to pass the gate
+                #     # tasks['cross_the_gate']['setpoints']['position.z'] = z_global 
+                #     # Now set as velocity.z = 0.0
+                # 
+                #     info['ending_step'] = it_idx
+                #     
+                #     print("Crossing the gate...")
             
             except Exception as e:
                 
@@ -871,3 +871,4 @@ if __name__ == '__main__':
         print(f"Data saved in {folder}.")
     ########### ------------------ SAVING THINGS -------------------- ###########
             
+
