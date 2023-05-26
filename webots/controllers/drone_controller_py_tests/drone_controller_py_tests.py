@@ -58,7 +58,7 @@ collect_data = True
 if collect_data:
         
     parent_folder = '../../datasets/EXP-5-IBVS'
-    folder = parent_folder +'/tests_detection_with_filter_for_simulator_behaviour/'+ '00_corner_det_test'
+    folder = parent_folder +'/tests_detection_no_filter_for_simulator_behaviour/'+ '00_corner_det_test'
 
     imgs_folder = f'{folder}/imgs/'
     imgs_ibvs_folder = f'{folder}/imgs_ibvs/'
@@ -224,7 +224,7 @@ if __name__ == '__main__':
     # old_p_detected = None
     detection = np.zeros(shape=(3,2,4))
     GT_detection = np.zeros(shape=(3,2,4))
-    filter = {'alpha':0.5, 'order':1}
+    filter = {'alpha':1, 'order':1}
     vs_counter = 0
     track_error = False
     offset = None
@@ -416,7 +416,13 @@ if __name__ == '__main__':
         elif visual_servoing:
             
             info = tasks['visual_servoing']
+            ########### ------------------ SAVING THINGS -------------------- ########### 
+
+            sample = {}
+            sample['target_points'] = pd
             
+            ########### ------------------ SAVING THINGS -------------------- ###########
+    
             # print(info)
             
             ########### ------------------ ROTATIONS ------------------ ###########
@@ -576,6 +582,16 @@ if __name__ == '__main__':
             yaw_desired = ibvs_w_z
             height_diff_desired = ibvs_v_z
 
+            ########### ------------------ SAVING THINGS -------------------- ########### 
+            
+            sample['ibvs_velocities_body_frame'] = [ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z]
+            sample['detected_points'] = p_detected
+            sample['ibvs_error'] = err
+            
+            print('p_detected', p_detected)
+            ########### ------------------ SAVING THINGS -------------------- ###########
+    
+
             ########### ------------------ VISUAL SERVOING ------------------ ###########
             
             # New height. Integrate v_z to get the next position.
@@ -627,6 +643,15 @@ if __name__ == '__main__':
 
             GT_ibvs_v_x, GT_ibvs_v_y, GT_ibvs_v_z, GT_ibvs_w_x, GT_ibvs_w_y, GT_ibvs_w_z = v_drone
             
+            ########### ------------------ SAVING THINGS -------------------- ########### 
+        
+            sample['GT_ibvs_velocities_body_frame'] = [GT_ibvs_v_x, GT_ibvs_v_y, GT_ibvs_v_z, GT_ibvs_w_x, GT_ibvs_w_y, GT_ibvs_w_z]
+            sample['GT_detected_points'] = GT_p_detected
+            sample['GT_ibvs_error'] = GT_err
+            print('GT_p_detected', GT_p_detected)
+            ########### ------------------ SAVING THINGS -------------------- ###########
+    
+
             ########### ------------------ GT VISUAL SERVOING ------------------ ###########
 
             # Show image
@@ -664,14 +689,6 @@ if __name__ == '__main__':
 
             ########### ------------------ SAVING THINGS -------------------- ########### 
 
-            sample = {}
-            sample['ibvs_velocities_body_frame'] = [ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z]
-            sample['GT_ibvs_velocities_body_frame'] = [GT_ibvs_v_x, GT_ibvs_v_y, GT_ibvs_v_z, GT_ibvs_w_x, GT_ibvs_w_y, GT_ibvs_w_z]
-            sample['target_points'] = pd
-            sample['detected_points'] = p_detected
-            sample['GT_detected_points'] = GT_p_detected
-            sample['ibvs_error'] = err
-            sample['GT_ibvs_error'] = GT_err
             data['IBVS'] = sample
         
             ########### ------------------ SAVING THINGS -------------------- ###########
@@ -848,3 +865,4 @@ if __name__ == '__main__':
         print(f"Data saved in {folder}.")
     ########### ------------------ SAVING THINGS -------------------- ###########
             
+
