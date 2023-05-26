@@ -223,6 +223,7 @@ if __name__ == '__main__':
     visual_servoing = False
     # old_p_detected = None
     detection = np.zeros(shape=(3,2,4))
+    GT_detection = np.zeros(shape=(3,2,4))
     filter = {'alpha':0.5, 'order':1}
     vs_counter = 0
     track_error = False
@@ -435,17 +436,17 @@ if __name__ == '__main__':
             GT_p_detected = cam.project_point(P, pose=SE3(T_C, check=False)) 
             current_p_detected = GT_p_detected
             if vs_counter == 0:
-                detection[0] = current_p_detected
-                p_detected = detection[0]
+                GT_detection[0] = current_p_detected
+                p_detected = GT_detection[0]
             elif vs_counter == 1:
-                detection[1] = detection[0]
-                detection[0] = current_p_detected
-                p_detected = corner.weigh_detection(detection, order=1, alpha=filter['alpha'])
+                GT_detection[1] = GT_detection[0]
+                GT_detection[0] = current_p_detected
+                p_detected = corner.weigh_detection(GT_detection, order=1, alpha=filter['alpha'])
             else:
-                detection[2] = detection[1]
-                detection[1] = detection[0]
-                detection[0] = current_p_detected
-                p_detected = corner.weigh_detection(detection, order=filter['order'], alpha=filter['alpha'])
+                GT_detection[2] = GT_detection[1]
+                GT_detection[1] = GT_detection[0]
+                GT_detection[0] = current_p_detected
+                p_detected = corner.weigh_detection(GT_detection, order=filter['order'], alpha=filter['alpha'])
             
             # vs_counter += 1 # We increment it later
             

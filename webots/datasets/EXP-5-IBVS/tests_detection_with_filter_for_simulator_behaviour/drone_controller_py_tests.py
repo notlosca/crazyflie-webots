@@ -58,7 +58,7 @@ collect_data = False
 if collect_data:
         
     parent_folder = '../../datasets/EXP-5-IBVS'
-    folder = parent_folder +'/tests_detection_with_filter_for_simulator_behaviour/'+ '02_corner_det_test'
+    folder = parent_folder +'/tests_detection_with_filter_for_simulator_behaviour/'+ '00_corner_det_test'
 
     imgs_folder = f'{folder}/imgs/'
     imgs_ibvs_folder = f'{folder}/imgs_ibvs/'
@@ -223,6 +223,7 @@ if __name__ == '__main__':
     visual_servoing = False
     # old_p_detected = None
     detection = np.zeros(shape=(3,2,4))
+    GT_detection = np.zeros(shape=(3,2,4))
     filter = {'alpha':.5, 'order':1}
     vs_counter = 0
     track_error = False
@@ -428,9 +429,6 @@ if __name__ == '__main__':
 
             extrinsic_matrix = extrinsic_matrix_world_drone@extrinsic_matrix_drone_camera
             ########### ------------------ ROTATIONS ------------------ ###########
-                        
-            T_C = SE3(wd_tr)*SE3.RPY(roll,pitch,yaw)*SE3(dc_tr)*SE3.RPY(-np.pi/2, 0, -np.pi/2)
-            GT_p_detected = cam.project_point(P, pose=SE3(T_C, check=False)) 
             
             # p_detected = corner.detect_corners(img)
             
@@ -440,8 +438,8 @@ if __name__ == '__main__':
 
             current_p_detected, drawing = corner.detect_corners(img, return_drawing=True)
             if collect_data:
-                    # Save the image
-                    cv2.imwrite(contours_folder+f'/img_{it_idx}.png', cv2.cvtColor(drawing, cv2.COLOR_BGR2GRAY))
+                # Save the image
+                cv2.imwrite(contours_folder+f'/img_{it_idx}.png', cv2.cvtColor(drawing, cv2.COLOR_BGR2GRAY))
     
             
             # try:
@@ -464,7 +462,7 @@ if __name__ == '__main__':
                 detection[0] = current_p_detected
                 p_detected = corner.weigh_detection(detection, order=filter['order'], alpha=filter['alpha'])
             
-            vs_counter += 1
+            # vs_counter += 1
             
             # print(detection)
 
@@ -586,7 +584,26 @@ if __name__ == '__main__':
 
             # Save the velocity and rates output of the visual servoing part using the ground truth
             # Used for analysis purposes. Feel free to comment all the code of this section.
-            p_detected = GT_p_detected
+
+            T_C = SE3(wd_tr)*SE3.RPY(roll,pitch,yaw)*SE3(dc_tr)*SE3.RPY(-np.pi/2, 0, -np.pi/2)
+            GT_p_detected = cam.project_point(P, pose=SE3(T_C, check=False)) 
+
+            current_p_detected = GT_p_detected
+            
+            if vs_counter == 0:
+                GT_detection[0] = current_p_detected
+                p_detected = GT_detection[0]
+            elif vs_counter == 1:
+                GT_detection[1] = GT_detection[0]
+                GT_detection[0] = current_p_detected
+                p_detected = corner.weigh_detection(GT_detection, order=1, alpha=filter['alpha'])
+            else:
+                GT_detection[2] = GT_detection[1]
+                GT_detection[1] = GT_detection[0]
+                GT_detection[0] = current_p_detected
+                p_detected = corner.weigh_detection(GT_detection, order=filter['order'], alpha=filter['alpha'])
+            
+            vs_counter += 1
 
             GT_e = pd - p_detected
             GT_err = np.linalg.norm(GT_e)
@@ -809,3 +826,4 @@ if __name__ == '__main__':
         print(f"Data saved in {folder}.")
     ########### ------------------ SAVING THINGS -------------------- ###########
             
+
