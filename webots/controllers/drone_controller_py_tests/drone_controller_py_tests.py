@@ -58,7 +58,7 @@ collect_data = True
 if collect_data:
         
     parent_folder = '../../datasets/EXP-5-IBVS'
-    folder = parent_folder +'/tests/'+ '01_corner_det_test'
+    folder = parent_folder +'/tests_detection_with_filter_for_simulator_behaviour/'+ '00_corner_det_test'
 
     imgs_folder = f'{folder}/imgs/'
     imgs_ibvs_folder = f'{folder}/imgs_ibvs/'
@@ -223,10 +223,12 @@ if __name__ == '__main__':
     visual_servoing = False
     # old_p_detected = None
     detection = np.zeros(shape=(3,2,4))
-    filter = {'alpha':.5, 'order':1}
+    GT_detection = np.zeros(shape=(3,2,4))
+    filter = {'alpha':0.5, 'order':1}
     vs_counter = 0
     track_error = False
     offset = None
+    error_nan_cnt = 0
     errors = np.zeros(shape=(3*sampling_frequency))
     median_err = np.inf
     tasks['visual_servoing'] = {'visual_servoing':True, 'corner_detection':True, 'filter':filter, 'next_task_condition':{'median_error':median_err, 'error_array':errors}}
@@ -364,7 +366,7 @@ if __name__ == '__main__':
         cameraData = camera.getImage()  # Note: uint8 string
         image = np.frombuffer(cameraData, np.uint8).reshape(h, w, 4) # BGR, alpha (transparency)
         
-        img = img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) # gray-scale image
+        img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) # gray-scale image
     
         if take_off:
             
@@ -428,9 +430,6 @@ if __name__ == '__main__':
 
             extrinsic_matrix = extrinsic_matrix_world_drone@extrinsic_matrix_drone_camera
             ########### ------------------ ROTATIONS ------------------ ###########
-                        
-            T_C = SE3(wd_tr)*SE3.RPY(roll,pitch,yaw)*SE3(dc_tr)*SE3.RPY(-np.pi/2, 0, -np.pi/2)
-            GT_p_detected = cam.project_point(P, pose=SE3(T_C, check=False)) 
             
             # p_detected = corner.detect_corners(img)
             
@@ -439,12 +438,10 @@ if __name__ == '__main__':
             # print('\n\np_detected\n', p_detected)
 
             current_p_detected, drawing = corner.detect_corners(img, return_drawing=True)
-            if collect_data:
-                try:
-                    # Save the image
-                    cv2.imwrite(contours_folder+f'/img_{it_idx}.png', cv2.cvtColor(drawing, cv2.COLOR_BGR2GRAY))
-                except:
-                    print(e)
+            # if collect_data:
+            #     # Save the image
+            #     cv2.imwrite(contours_folder+f'/img_{it_idx}.png', cv2.cvtColor(drawing, cv2.COLOR_BGR2GRAY))
+    
             
             # try:
             #     cv2.imshow("Contours", drawing)
@@ -466,7 +463,7 @@ if __name__ == '__main__':
                 detection[0] = current_p_detected
                 p_detected = corner.weigh_detection(detection, order=filter['order'], alpha=filter['alpha'])
             
-            vs_counter += 1
+            # vs_counter += 1
             
             # print(detection)
 
@@ -498,6 +495,9 @@ if __name__ == '__main__':
                 e = pd - p_detected
                 err = np.linalg.norm(e)
                 
+                if np.isnan(err):
+                    error_nan_cnt += 1
+
                 print(f"Error: {err:.2f}")
 
                 if err <= 50 and track_error is False:
@@ -507,8 +507,9 @@ if __name__ == '__main__':
                 
                 if track_error and median_err > 50:
                     idx = it_idx - offset
-                    print(f"Collecting errors: {idx}/{errors.shape[-1]}")                    
-                    if idx == len(errors):
+                        
+
+                    if idx >= len(errors):
                         median_err = np.median(errors)
                         print("Median error:", median_err)
                         if median_err <= 50:
@@ -527,7 +528,14 @@ if __name__ == '__main__':
                             temp = errors[1:]
                             errors[:-1] = temp
                             errors[-1] = err
+                    # elif idx > len(errors):
+                    #     print(f"Collecting errors: {idx}/{errors.shape[-1]}")
+                    #     # Shift errors
+                    #     temp = errors[1:]
+                    #     errors[:-1] = temp
+                    #     errors[-1] = err
                     else:
+                        print(f"Collecting errors: {idx}/{errors.shape[-1]}")
                         errors[idx] = err
 
         
@@ -550,14 +558,17 @@ if __name__ == '__main__':
                 print(e)
                 
                 continue
-            
-            # stacked image Jacobian
-            J = cam.visjac_p(p_detected, Z)
-            v_camera = lmda * np.linalg.pinv(J) @ e.T.flatten()
+            try:
+                # stacked image Jacobian
+                J = cam.visjac_p(p_detected, Z)
+                v_camera = lmda * np.linalg.pinv(J) @ e.T.flatten()
 
-            # Twist velocity from camera frame to drone frame
-            twist_drone_camera = geometry.velocity_twist_matrix(rotation_matrix_drone_camera, dc_tr)
-            v_drone = twist_drone_camera@v_camera
+                # Twist velocity from camera frame to drone frame
+                twist_drone_camera = geometry.velocity_twist_matrix(rotation_matrix_drone_camera, dc_tr)
+                v_drone = twist_drone_camera@v_camera
+            except:
+                break
+                v_drone = np.zeros(shape=(6,))
             ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z = v_drone
             
             forward_desired = ibvs_v_x
@@ -580,16 +591,40 @@ if __name__ == '__main__':
 
             # Save the velocity and rates output of the visual servoing part using the ground truth
             # Used for analysis purposes. Feel free to comment all the code of this section.
-            p_detected = GT_p_detected
 
-            GT_e = pd - p_detected
+            T_C = SE3(wd_tr)*SE3.RPY(roll,pitch,yaw)*SE3(dc_tr)*SE3.RPY(-np.pi/2, 0, -np.pi/2)
+            GT_p_detected = cam.project_point(P, pose=SE3(T_C, check=False)) 
+
+            current_p_detected = GT_p_detected
+            
+            if vs_counter == 0:
+                GT_detection[0] = current_p_detected
+                GT_p_detected = GT_detection[0]
+            elif vs_counter == 1:
+                GT_detection[1] = GT_detection[0]
+                GT_detection[0] = current_p_detected
+                GT_p_detected = corner.weigh_detection(GT_detection, order=1, alpha=filter['alpha'])
+            else:
+                GT_detection[2] = GT_detection[1]
+                GT_detection[1] = GT_detection[0]
+                GT_detection[0] = current_p_detected
+                GT_p_detected = corner.weigh_detection(GT_detection, order=filter['order'], alpha=filter['alpha'])
+            
+            vs_counter += 1
+
+            GT_e = pd - GT_p_detected
             GT_err = np.linalg.norm(GT_e)
 
-            # stacked image Jacobian
-            J = cam.visjac_p(p_detected, Z)
-            v_camera = lmda * np.linalg.pinv(J) @ e.T.flatten()
+            try:
+                # stacked image Jacobian
+                J = cam.visjac_p(GT_p_detected, Z)
+                v_camera = lmda * np.linalg.pinv(J) @ e.T.flatten()
 
-            v_drone = twist_drone_camera@v_camera
+                v_drone = twist_drone_camera@v_camera
+            except:
+                break
+                v_drone = np.zeros(shape=(6,))
+
             GT_ibvs_v_x, GT_ibvs_v_y, GT_ibvs_v_z, GT_ibvs_w_x, GT_ibvs_w_y, GT_ibvs_w_z = v_drone
             
             ########### ------------------ GT VISUAL SERVOING ------------------ ###########
@@ -607,16 +642,26 @@ if __name__ == '__main__':
                 image = cv2.line(image, (int(tr[0]), int(tr[1])), (int(br[0]), int(br[1])), color=(255, 255, 255), thickness=1) # top-right, bottom-right
                 image = cv2.line(image, (int(br[0]), int(br[1])), (int(bl[0]), int(bl[1])), color=(255, 255, 255), thickness=1) # bottom-left, top-right
                 image = cv2.line(image, (int(bl[0]), int(bl[1])), (int(tl[0]), int(tl[1])), color=(255, 255, 255), thickness=1) # bottom-left, top-left
-                x, y = p_detected[:,id] # Detected
-                image = cv2.circle(image, (int(x),int(y)), radius=2, color=(255, 255, 255), thickness=-1)
-                image = cv2.putText(image, text=str(id), org = (int(x),int(y)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.5, color = (255,255,255), thickness = 1)
-                if collect_data:
-                    # Save the image
-                    cv2.imwrite(imgs_ibvs_folder+f'/img_{it_idx}.png', cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+                try:
+                    x, y = p_detected[:,id] # Detected
+                    image = cv2.circle(image, (int(x),int(y)), radius=2, color=(255, 255, 255), thickness=-1)
+                    image = cv2.putText(image, text=str(id), org = (int(x),int(y)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.5, color = (255,255,255), thickness = 1)
+                    if collect_data:
+                        # Save the image
+                        cv2.imwrite(imgs_ibvs_folder+f'/img_{it_idx}.png', cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
     
+                except:
+
+                    if collect_data:
+                        # Save the image
+                        cv2.imwrite(imgs_ibvs_folder+f'/img_{it_idx}.png', cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+        
             # cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
             # cv2.waitKey(timestep)
             
+            if error_nan_cnt >= 1*sampling_frequency:
+                break
+
             ########### ------------------ SAVING THINGS -------------------- ########### 
 
             sample = {}

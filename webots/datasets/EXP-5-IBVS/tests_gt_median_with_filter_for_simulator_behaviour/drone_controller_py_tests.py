@@ -437,23 +437,23 @@ if __name__ == '__main__':
             current_p_detected = GT_p_detected
             if vs_counter == 0:
                 GT_detection[0] = current_p_detected
-                p_detected = GT_detection[0]
+                GT_p_detected = GT_detection[0]
             elif vs_counter == 1:
                 GT_detection[1] = GT_detection[0]
                 GT_detection[0] = current_p_detected
-                p_detected = corner.weigh_detection(GT_detection, order=1, alpha=filter['alpha'])
+                GT_p_detected = corner.weigh_detection(GT_detection, order=1, alpha=filter['alpha'])
             else:
                 GT_detection[2] = GT_detection[1]
                 GT_detection[1] = GT_detection[0]
                 GT_detection[0] = current_p_detected
-                p_detected = corner.weigh_detection(GT_detection, order=filter['order'], alpha=filter['alpha'])
+                GT_p_detected = corner.weigh_detection(GT_detection, order=filter['order'], alpha=filter['alpha'])
             
             # vs_counter += 1 # We increment it later
             
             # image-plane error
             try:
                 
-                GT_e = pd - p_detected
+                GT_e = pd - GT_p_detected
                 GT_err = np.linalg.norm(GT_e)
                 
                 print(f"Error: {GT_err:.2f}")
@@ -508,7 +508,7 @@ if __name__ == '__main__':
                 continue
 
             # stacked image Jacobian
-            J = cam.visjac_p(p_detected, Z)
+            J = cam.visjac_p(GT_p_detected, Z)
             v_camera = lmda * np.linalg.pinv(J) @ GT_e.T.flatten()
             
             # Twist velocity from camera frame to drone frame

@@ -567,6 +567,7 @@ if __name__ == '__main__':
                 twist_drone_camera = geometry.velocity_twist_matrix(rotation_matrix_drone_camera, dc_tr)
                 v_drone = twist_drone_camera@v_camera
             except:
+                break
                 v_drone = np.zeros(shape=(6,))
             ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z = v_drone
             
@@ -598,29 +599,30 @@ if __name__ == '__main__':
             
             if vs_counter == 0:
                 GT_detection[0] = current_p_detected
-                p_detected = GT_detection[0]
+                GT_p_detected = GT_detection[0]
             elif vs_counter == 1:
                 GT_detection[1] = GT_detection[0]
                 GT_detection[0] = current_p_detected
-                p_detected = corner.weigh_detection(GT_detection, order=1, alpha=filter['alpha'])
+                GT_p_detected = corner.weigh_detection(GT_detection, order=1, alpha=filter['alpha'])
             else:
                 GT_detection[2] = GT_detection[1]
                 GT_detection[1] = GT_detection[0]
                 GT_detection[0] = current_p_detected
-                p_detected = corner.weigh_detection(GT_detection, order=filter['order'], alpha=filter['alpha'])
+                GT_p_detected = corner.weigh_detection(GT_detection, order=filter['order'], alpha=filter['alpha'])
             
             vs_counter += 1
 
-            GT_e = pd - p_detected
+            GT_e = pd - GT_p_detected
             GT_err = np.linalg.norm(GT_e)
 
             try:
                 # stacked image Jacobian
-                J = cam.visjac_p(p_detected, Z)
+                J = cam.visjac_p(GT_p_detected, Z)
                 v_camera = lmda * np.linalg.pinv(J) @ e.T.flatten()
 
                 v_drone = twist_drone_camera@v_camera
             except:
+                break
                 v_drone = np.zeros(shape=(6,))
 
             GT_ibvs_v_x, GT_ibvs_v_y, GT_ibvs_v_z, GT_ibvs_w_x, GT_ibvs_w_y, GT_ibvs_w_z = v_drone
