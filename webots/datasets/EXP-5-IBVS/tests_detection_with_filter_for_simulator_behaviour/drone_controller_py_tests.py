@@ -452,7 +452,7 @@ if __name__ == '__main__':
 
             if vs_counter == 0:
                 detection[0] = current_p_detected
-                p_detected = detection[0]
+                p_detected = current_p_detected
             elif vs_counter == 1:
                 detection[1] = detection[0]
                 detection[0] = current_p_detected

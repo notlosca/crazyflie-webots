@@ -458,7 +458,8 @@ if __name__ == '__main__':
 
             if vs_counter == 0:
                 detection[0] = current_p_detected
-                p_detected = detection[0]
+                # p_detected = detection[0] # Doing like this saves the first corners as nan
+                p_detected = current_p_detected
             elif vs_counter == 1:
                 detection[1] = detection[0]
                 detection[0] = current_p_detected
@@ -588,7 +589,6 @@ if __name__ == '__main__':
             sample['detected_points'] = p_detected
             sample['ibvs_error'] = err
             
-            print('p_detected', p_detected)
             ########### ------------------ SAVING THINGS -------------------- ###########
     
 
@@ -648,7 +648,7 @@ if __name__ == '__main__':
             sample['GT_ibvs_velocities_body_frame'] = [GT_ibvs_v_x, GT_ibvs_v_y, GT_ibvs_v_z, GT_ibvs_w_x, GT_ibvs_w_y, GT_ibvs_w_z]
             sample['GT_detected_points'] = GT_p_detected
             sample['GT_ibvs_error'] = GT_err
-            print('GT_p_detected', GT_p_detected)
+
             ########### ------------------ SAVING THINGS -------------------- ###########
     
 
