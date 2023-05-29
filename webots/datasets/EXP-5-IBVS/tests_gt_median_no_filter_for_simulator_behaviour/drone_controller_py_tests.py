@@ -437,7 +437,7 @@ if __name__ == '__main__':
             current_p_detected = GT_p_detected
             if vs_counter == 0:
                 GT_detection[0] = current_p_detected
-                GT_p_detected = GT_detection[0]
+                GT_p_detected = current_p_detected
             elif vs_counter == 1:
                 GT_detection[1] = GT_detection[0]
                 GT_detection[0] = current_p_detected
