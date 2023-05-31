@@ -186,20 +186,7 @@ if __name__ == '__main__':
     # Original ones
     gains = {"kp_att_y": 1, "kd_att_y": 0.5, "kp_att_rp": 0.5, "kd_att_rp": 0.1,
              "kp_vel_xy": 2, "kd_vel_xy": 0.5, "kp_z": 10, "ki_z": 5, "kd_z": 5}
-    # Mine
-    # gains = {"kp_att_y": 1, "kd_att_y": 0.5, "kp_att_rp": 0.5, "kd_att_rp": 0.1,
-    #          "kp_vel_xy": 2, "kd_vel_xy": 0.5, "kp_z": 8, "ki_z": 5, "kd_z": 5}
 
-    print("\n");
-
-    print("====== Controls =======\n\n");
-
-    print(" The Crazyflie can be controlled from your keyboard!\n");
-    print(" All controllable movement is in body coordinates\n");
-    print("- Use the up, back, right and left button to move in the horizontal plane\n");
-    print("- Use Q and E to rotate around yaw ");
-    print("- Use W and S to go up and down\n ")
-       
     ########### ------------------ HOVERING ------------------ ###########
 
     # Hovering
@@ -224,6 +211,9 @@ if __name__ == '__main__':
     # old_p_detected = None
     detection = np.zeros(shape=(3,2,4))
     GT_detection = np.zeros(shape=(3,2,4))
+    detections = []
+    GT_detections = []
+    GT_jitter_detections = []
     filter = {'alpha':1, 'order':1}
     vs_counter = 0
     track_error = False
@@ -250,10 +240,6 @@ if __name__ == '__main__':
     # OpenCV show images
     cv2.startWindowThread()
     cv2.namedWindow("Drone Camera")
-
-    # # OpenCV show images
-    # cv2.startWindowThread()
-    # cv2.namedWindow("Contours")
 
     colors = ['r', 'b', 'g', 'y']
     
@@ -301,7 +287,6 @@ if __name__ == '__main__':
     height_desired = take_off_info['setpoints']['position.z']
 
     ## Initialize values
-    desired_state = [0, 0, 0, 0] # Not used
     forward_desired = 0
     sideways_desired = 0
     yaw_desired = 0
@@ -318,15 +303,13 @@ if __name__ == '__main__':
         data = {}
         
         dt = robot.getTime() - past_time
-        # actual_state = {} # Not used
 
         ## Get sensor data
         roll, pitch, yaw = imu.getRollPitchYaw()
         roll_rate, pitch_rate, yaw_rate = gyro.getValues()
         altitude = gps.getValues()[2]
         x_global, y_global, z_global = gps.getValues()
-        # v_x_global, v_y_global, v_z_global = gps.getSpeedVector()
-        # print(gps.getSpeedVector())
+
 
         if it_idx == 0:
             # Initialization
@@ -371,12 +354,8 @@ if __name__ == '__main__':
             
             info = tasks['take_off'] # take_off_info
             
-            # print(info)
-
             isclose = np.isclose(z_global, info['setpoints']['position.z'], rtol=1e-2)
             if isclose and prev_step:
-                # print(True)
-                # print("prev_step", prev_step)
                 if prev_step:
                     print('Hovering...')
                     hovering += 1
@@ -391,9 +370,7 @@ if __name__ == '__main__':
             else:
                 hovering = 0
                 prev_step = isclose
-        
-            # print(hovering_steps)
-            
+                    
             # Setpoints fashion (only in velocity)
             forward_desired = info['setpoints']['velocity.x']
             sideways_desired = info['setpoints']['velocity.y']
@@ -415,9 +392,7 @@ if __name__ == '__main__':
         elif visual_servoing:
             
             info = tasks['visual_servoing']
-            
-            # print(info)
-            
+                        
             ########### ------------------ ROTATIONS ------------------ ###########
             rotation_matrix_world_drone = rotation.rotation_matrix(roll, pitch, yaw)
             wd_tr = np.array([x_global, y_global, z_global])
@@ -429,139 +404,6 @@ if __name__ == '__main__':
 
             extrinsic_matrix = extrinsic_matrix_world_drone@extrinsic_matrix_drone_camera
             ########### ------------------ ROTATIONS ------------------ ###########
-
-            ########### ------------------ DETECTION VISUAL SERVOING ------------------ ###########
-
-            # p_detected = corner.detect_corners(img)
-            
-            # p_detected = GT_p_detected
-            # print("\n\nGT_p_detected\n", GT_p_detected)
-            # print('\n\np_detected\n', p_detected)
-
-            current_p_detected = corner.detect_corners(img, return_drawing=False)
-            # if collect_data:
-            #         # Save the image
-            #         cv2.imwrite(contours_folder+f'/img_{it_idx}.png', cv2.cvtColor(drawing, cv2.COLOR_BGR2GRAY))
-    
-            
-            # try:
-            #     cv2.imshow("Contours", drawing)
-            #     cv2.waitKey(timestep)
-            # except Exception as e:
-            #     # print(e)
-            #     continue
-
-            if vs_counter == 0:
-                detection[0] = current_p_detected
-                p_detected = current_p_detected
-            elif vs_counter == 1:
-                detection[1] = detection[0]
-                detection[0] = current_p_detected
-                p_detected = corner.weigh_detection(detection, order=1, alpha=filter['alpha'])
-            else:
-                detection[2] = detection[1]
-                detection[1] = detection[0]
-                detection[0] = current_p_detected
-                p_detected = corner.weigh_detection(detection, order=filter['order'], alpha=filter['alpha'])
-            
-            vs_counter += 1 # We now increment it!
-            
-            # print(detection)
-
-            # if not vs_init:
-            #     # First time, we initialize old_p_detected
-            #     current_p_detected = corner.detect_corners(img)
-            #     old_p_detected = current_p_detected
-            #     vs_init = True
-            # else:
-            #     current_p_detected = corner.detect_corners(img)
-            #     # If none, we consider the 
-            #     if current_p_detected is None:
-            #         p_detected = old_p_detected
-            #     else:
-            #         # 1: Consider only the current state; 0: Consider only the previous one
-            #         p_detected = corner.weigh_detection(current_p_detected, old_p_detected, alpha=0.5) 
-            #         old_p_detected = p_detected
-
-            # try:
-            #     print("\n\nGT_p_detected - p_detected\n", GT_p_detected-p_detected)
-            # except Exception as e:
-            #     print(e)
-
-            
-            # image-plane error
-            try:
-                
-                e = pd - p_detected
-                err = np.linalg.norm(e)
-                
-                # print(f"Error: {err:.2f}")
-
-                # if err <= 50 and track_error is False:
-                #     track_error = True
-                #     offset = it_idx
-                #     print("Collect errors...")
-                #  
-                # if track_error and median_err > 50:
-                #     idx = it_idx - offset
-                #     print(f"Collecting errors: {idx}/{errors.shape[-1]}")                    
-                #     if idx == len(errors):
-                #         median_err = np.median(errors)
-                #         print("Median error:", median_err)
-                #         if median_err <= 50:
-                #             visual_servoing = False
-                #             cross_the_gate = True
-                #             
-                #             # Save the current altitude in order to pass the gate
-                #             # tasks['cross_the_gate']['setpoints']['position.z'] = z_global 
-                #             # Now set as velocity.z = 0.0
-
-                #             info['ending_step'] = it_idx
-                #             
-                #             print("Crossing the gate...")
-                #         else:
-                #             # Shift errors
-                #             temp = errors[1:]
-                #             errors[:-1] = temp
-                #             errors[-1] = err
-                #     else:
-                #         errors[idx] = err
-
-        
-                
-                # if err <= thresh:
-                #     
-                #     visual_servoing = False
-                #     cross_the_gate = True
-                #     
-                #     # Save the current altitude in order to pass the gate
-                #     # tasks['cross_the_gate']['setpoints']['position.z'] = z_global 
-                #     # Now set as velocity.z = 0.0
-                # 
-                #     info['ending_step'] = it_idx
-                #     
-                #     print("Crossing the gate...")
-            
-            except Exception as e:
-                
-                print(e)
-                
-                continue
-            
-            try:
-                # stacked image Jacobian
-                J = cam.visjac_p(p_detected, Z)
-                v_camera = lmda * np.linalg.pinv(J) @ e.T.flatten()
-                # Twist velocity from camera frame to drone frame
-                twist_drone_camera = geometry.velocity_twist_matrix(rotation_matrix_drone_camera, dc_tr)
-                v_drone = twist_drone_camera@v_camera
-            except:
-                break
-                v_drone = np.full(shape=(6,), fill_value=np.nan)
-                
-            ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z = v_drone
-
-            ########### ------------------ DETECTION VISUAL SERVOING ------------------ ###########
             
             ########### ------------------ GT VISUAL SERVOING ------------------ ###########
                        
@@ -580,6 +422,8 @@ if __name__ == '__main__':
                 GT_detection[1] = GT_detection[0]
                 GT_detection[0] = current_p_detected
                 GT_p_detected = corner.weigh_detection(GT_detection, order=filter['order'], alpha=filter['alpha'])
+                       
+            GT_detections.append(GT_p_detected)
             
             jitter = np.random.normal(size=8).reshape(2,4)
             
@@ -598,9 +442,7 @@ if __name__ == '__main__':
             # print(jitter)
             GT_jitter_p_detected = GT_p_detected + jitter
             
-            # # Change just the one point
-            # jitter = np.random.normal(scale=0.45, size=2)
-            # GT_jitter_p_detected[:,0] += jitter
+            GT_jitter_detections.append(GT_jitter_p_detected)
             
             # image-plane error
             try:
@@ -659,12 +501,11 @@ if __name__ == '__main__':
                 
                 continue
             
-            try:
-                # stacked image Jacobian
-                J = cam.visjac_p(GT_jitter_p_detected, Z)
-                v_camera = lmda * np.linalg.pinv(J) @ GT_e.T.flatten()
-            except:
-                break    
+
+            # stacked image Jacobian
+            J = cam.visjac_p(GT_jitter_p_detected, Z)
+            v_camera = lmda * np.linalg.pinv(J) @ GT_e.T.flatten()
+   
             # Twist velocity from camera frame to drone frame
             twist_drone_camera = geometry.velocity_twist_matrix(rotation_matrix_drone_camera, dc_tr)
             
@@ -675,16 +516,9 @@ if __name__ == '__main__':
             sideways_desired = GT_ibvs_v_y
             yaw_desired = GT_ibvs_w_z
             height_diff_desired = GT_ibvs_v_z
-
             
             # New height. Integrate v_z to get the next position.
             height_desired += height_diff_desired * dt 
-            
-            ## PID velocity controller with fixed height. Height given as position.
-            motor_power = PID_CF.pid(dt, forward_desired, sideways_desired,
-                                    yaw_desired, height_desired,
-                                    roll, pitch, yaw_rate,
-                                    altitude, v_x, v_y, gains)
 
             ########### ------------------ GT VISUAL SERVOING ------------------ ##########
 
@@ -711,6 +545,82 @@ if __name__ == '__main__':
             cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
             cv2.waitKey(timestep)
             
+            ########### ------------------ DETECTION VISUAL SERVOING ------------------ ###########
+
+            current_p_detected = corner.detect_corners(img, return_drawing=False)
+
+            if vs_counter == 0:
+                detection[0] = current_p_detected
+                p_detected = current_p_detected
+            elif vs_counter == 1:
+                detection[1] = detection[0]
+                detection[0] = current_p_detected
+                p_detected = corner.weigh_detection(detection, order=1, alpha=filter['alpha'])
+            else:
+                detection[2] = detection[1]
+                detection[1] = detection[0]
+                detection[0] = current_p_detected
+                p_detected = corner.weigh_detection(detection, order=filter['order'], alpha=filter['alpha'])
+
+            vs_counter += 1
+
+            detections.append(p_detected)
+
+            # image-plane error
+            try:
+                
+                e = pd - p_detected
+                err = np.linalg.norm(e)
+                
+            except Exception as e:
+                
+                print(e)
+                
+                continue
+            
+            try:
+                # stacked image Jacobian
+                J = cam.visjac_p(p_detected, Z)
+                v_camera = lmda * np.linalg.pinv(J) @ e.T.flatten()
+                # Twist velocity from camera frame to drone frame
+                twist_drone_camera = geometry.velocity_twist_matrix(rotation_matrix_drone_camera, dc_tr)
+                v_drone = twist_drone_camera@v_camera
+            
+            except Exception as e:
+
+                print(e)    
+                
+                info['ending_step'] = it_idx
+                
+                ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z = np.full(shape=(6,), fill_value=np.nan)
+                
+                ########### ------------------ SAVING THINGS -------------------- ########### 
+
+                sample = {}
+                sample['ibvs_velocities_body_frame'] = [ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z]
+                sample['GT_ibvs_velocities_body_frame'] = [GT_ibvs_v_x, GT_ibvs_v_y, GT_ibvs_v_z, GT_ibvs_w_x, GT_ibvs_w_y, GT_ibvs_w_z]
+                sample['target_points'] = pd
+                sample['detected_points'] = p_detected
+                sample['GT_detected_points'] = GT_p_detected
+                sample['GT_jitter_detected_points'] = GT_jitter_p_detected
+                sample['ibvs_error'] = err
+                sample['GT_jitter_ibvs_error'] = GT_err
+                data['IBVS'] = sample
+            
+                ########### ------------------ SAVING THINGS -------------------- ###########
+                
+                break
+                
+            ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z = v_drone
+
+            ########### ------------------ DETECTION VISUAL SERVOING ------------------ ###########
+            
+            ## PID velocity controller with fixed height. Height given as position.
+            motor_power = PID_CF.pid(dt, forward_desired, sideways_desired,
+                                    yaw_desired, height_desired,
+                                    roll, pitch, yaw_rate,
+                                    altitude, v_x, v_y, gains)
+            
             ########### ------------------ SAVING THINGS -------------------- ########### 
 
             sample = {}
@@ -721,18 +631,16 @@ if __name__ == '__main__':
             sample['GT_detected_points'] = GT_p_detected
             sample['GT_jitter_detected_points'] = GT_jitter_p_detected
             sample['ibvs_error'] = err
-            sample['GT_ibvs_error'] = GT_err
+            sample['GT_jitter_ibvs_error'] = GT_err
             data['IBVS'] = sample
-        
+            
             ########### ------------------ SAVING THINGS -------------------- ###########
-    
+                
 
         elif cross_the_gate:
             
             info = tasks['cross_the_gate']
-            
-            # print(info)
-            
+                        
             if cross_the_gate_steps >= info['num_steps']:
                 
                 hovering += 1
@@ -811,9 +719,7 @@ if __name__ == '__main__':
                 m3_motor.setVelocity(-motor_power[2])
                 m4_motor.setVelocity(motor_power[3])
                 print("Landed!")
-            
-            # print(f'{landing_steps}/{info["num_steps"]}')
-            
+                        
             landing_steps += 1
         
         else:
@@ -831,29 +737,6 @@ if __name__ == '__main__':
         past_y_global = y_global
         past_z_global = z_global
         
-        # ########### ------------------ PRINT -------------------- ########### 
-        # print("########### ------------------ GPS [m] -------------------- ###########")
-        # print(f"X: {x_global:.4f}\tY: {y_global:.4f}\tZ: {z_global:.4f}")
-        # print("########### ------------------ GPS [m] -------------------- ###########")
-        # print("\n ")
-        # print("########### ------------------ VELOCITIES [m/s] -------------------- ###########")
-        # print(f"X: {v_x_global:.4f}\tY: {v_y_global:.4f}\tZ: {v_z_global:.4f}")
-        # print("########### ------------------ VELOCITIES [m/s] -------------------- ###########")
-        # print("\n ")
-        # print("########### ------------------ BODY VELOCITIES [m/s] -------------------- ###########")
-        # print(f"X: {v_x:.4f}\tY: {v_y:.4f}\tZ: NO")
-        # print("########### ------------------ BODY VELOCITIES [m/s] -------------------- ###########")
-        # print("\n ")
-        # print("########### ------------------ IMU [rad] -------------------- ###########")
-        # print(f"R: {roll:.4f}\tP: {pitch:.4f}\tY: {yaw:.4f}")
-        # print("########### ------------------ IMU [rad] -------------------- ###########")
-        # print("\n ")
-        # print(f"########### ------------------ ATTITUDE RATES [rad/s] -------------------- ###########")
-        # print(f"R: {roll_rate:.4f}\tP: {pitch_rate:.4f}\tY: {yaw_rate:.4f}")
-        # print(f"########### ------------------ ATTITUDE RATES [rad/s] -------------------- ###########")
-        # print("\n ")
-        # ########### ------------------ PRINT -------------------- ########### 
-        
         ########### ------------------ SAVING THINGS -------------------- ###########
 
         data['STATE'] = {'POSITION': (x_global, y_global, z_global), 
@@ -870,7 +753,7 @@ if __name__ == '__main__':
                           'm2':motor_power[1],
                           'm3':-motor_power[2],
                           'm4':motor_power[3],}
-
+        
         if collect_data:
             
             # Save image
@@ -885,6 +768,8 @@ if __name__ == '__main__':
         it_idx += 1
         
     dataset['info'] = tasks
+    dataset['detections'] = {'detection': detections, 'GT_detection': GT_detections, 'GT_jitter_detection': GT_jitter_detections}
+    dataset['jitter'] = {'mean':0, 'std_dev':1}
 
     import pickle, os
 
