@@ -596,16 +596,16 @@ if __name__ == '__main__':
             # jitter = np.random.normal(scale=0.37, size=8).reshape(2,4) 
             
             # print(jitter)
-            GT_p_detected += jitter
+            GT_jitter_p_detected = GT_p_detected + jitter
             
             # # Change just the one point
             # jitter = np.random.normal(scale=0.45, size=2)
-            # GT_p_detected[:,0] += jitter
+            # GT_jitter_p_detected[:,0] += jitter
             
             # image-plane error
             try:
                 
-                GT_e = pd - GT_p_detected
+                GT_e = pd - GT_jitter_p_detected
                 GT_err = np.linalg.norm(GT_e)
                 
                 print(f"Error: {GT_err:.2f}")
@@ -661,7 +661,7 @@ if __name__ == '__main__':
             
             try:
                 # stacked image Jacobian
-                J = cam.visjac_p(GT_p_detected, Z)
+                J = cam.visjac_p(GT_jitter_p_detected, Z)
                 v_camera = lmda * np.linalg.pinv(J) @ GT_e.T.flatten()
             except:
                 break    
@@ -719,6 +719,7 @@ if __name__ == '__main__':
             sample['target_points'] = pd
             sample['detected_points'] = p_detected
             sample['GT_detected_points'] = GT_p_detected
+            sample['GT_jitter_detected_points'] = GT_jitter_p_detected
             sample['ibvs_error'] = err
             sample['GT_ibvs_error'] = GT_err
             data['IBVS'] = sample
