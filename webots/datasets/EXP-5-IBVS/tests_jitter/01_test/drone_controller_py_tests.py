@@ -1,19 +1,3 @@
-#  ...........       ____  _ __
-#  |  ,-^-,  |      / __ )(_) /_______________ _____  ___
-#  | (  O  ) |     / __  / / __/ ___/ ___/ __ `/_  / / _ \
-#  | / ,..´  |    / /_/ / / /_/ /__/ /  / /_/ / / /_/  __/
-#     +.......   /_____/_/\__/\___/_/   \__,_/ /___/\___/
- 
-# MIT License
-
-# Copyright (c) 2022 Bitcraze
-
-# @file crazyflie_controllers_py.py
-# Controls the crazyflie motors in webots in Python
-
-"""crazyflie_controller_py controller."""
-
-
 # from controller import Robot
 from controller import Supervisor
 from controller import Motor
@@ -50,6 +34,16 @@ from pid_controller import pid_velocity_fixed_height_controller
 
 FLYING_ATTITUDE = 1
 np.random.seed(0)
+
+########### ------------------ TEST PARAMETERS -------------------- ###########
+relative_angle = np.deg2rad(+30)
+test = {# 'orientation':(0,0,np.pi/2), # Perpendicular to the gate
+        # 'orientation':(0,0,np.pi/2 + relative_angle), # Facing the gate centre
+        # 'theta':relative_angle, 
+        'take_off_height':1.0, 
+        'sigma':0.418}
+########### ------------------ TEST PARAMETERS -------------------- ###########
+
 ########### ------------------ SAVING THINGS -------------------- ###########
     
 # Set to True if you want to collect data
@@ -167,9 +161,25 @@ if __name__ == '__main__':
     ]).T
     print('Gate data (br, bl, tl, tr, gate_center, translation_gate):', br, bl, tl, tr, gate_center, translation_gate)
 
-    ## Get keyboard
-    keyboard = Keyboard()
-    keyboard.enable(timestep)
+    # ########### ------------------ DRONE STARTING POSITION ------------------ ###########
+    # r = 2
+    # theta = test['theta']
+# 
+    # x = r*np.sin(theta)
+    # y = - r*np.cos(theta)
+# 
+    # starting_height = translation_drone.getSFVec3f()[-1]
+    # translation_drone.setSFVec3f([x, y, starting_height])
+# 
+    # # Orientation
+    # roll, pitch, yaw = test['orientation']
+    # rot = transforms3d.euler.euler2axangle(roll, -pitch, yaw)
+    # ax_angle = list(rot[0])
+    # ax_angle.append(rot[-1])    
+# 
+    # crazyflie_node.getField('rotation').setSFRotation(ax_angle)
+    # ########### ------------------ DRONE STARTING POSITION ------------------ ###########
+
 
     ## Initialize variables
 
@@ -204,7 +214,7 @@ if __name__ == '__main__':
     tasks['order'] = ['take_off', 'visual_servoing', 'cross_the_gate', 'land']
 
     take_off = True
-    take_off_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':0.0, 'position.z':1, 'attitudeRate.yaw':0.0}}
+    take_off_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':0.0, 'position.z':test['take_off_height'], 'attitudeRate.yaw':0.0}}
     tasks['take_off'] = take_off_info
 
     visual_servoing = False
@@ -281,7 +291,8 @@ if __name__ == '__main__':
                         'rotation': gate_node.getField('rotation').getSFRotation()}
     dataset['camera'] = {'f':f, 'pixel_size':pixel_size, 'img_size':img_size }
     dataset['ibvs'] = {'lambda': lmda, 'threshold': thresh, 'Z':{'estimated':False, 'value':Z}}
-    
+    dataset['test'] = test
+
     ########### ------------------ SAVING THINGS ------------------ ###########
 
     height_desired = take_off_info['setpoints']['position.z']
@@ -424,22 +435,9 @@ if __name__ == '__main__':
                 GT_p_detected = corner.weigh_detection(GT_detection, order=filter['order'], alpha=filter['alpha'])
                        
             GT_detections.append(GT_p_detected)
+                        
+            jitter = np.random.normal(scale=test['sigma'], size=8).reshape(2,4) 
             
-            # jitter = np.random.normal(size=8).reshape(2,4)
-            
-            # 0.45 is the max std of the features when the drone falls (no filter)
-            jitter = np.random.normal(scale=0.45, size=8).reshape(2,4) 
-            
-            # # 0.29 is the max std of the features with the filter
-            # jitter = np.random.normal(scale=0.29, size=8).reshape(2,4) 
-            
-            # # 0.21 is the mean std of the features with  filter
-            # jitter = np.random.normal(scale=0.21, size=8).reshape(2,4) 
-            
-            # # 0.37 is the mean std of the features with no filter
-            # jitter = np.random.normal(scale=0.37, size=8).reshape(2,4) 
-            
-            # print(jitter)
             GT_jitter_p_detected = GT_p_detected + jitter
             
             GT_jitter_detections.append(GT_jitter_p_detected)
@@ -459,6 +457,8 @@ if __name__ == '__main__':
                 
                 if track_error and median_err > 50:
                     idx = it_idx - offset
+                    if idx >= len(errors):
+                        idx = len(errors)
                     print(f"Collecting errors: {idx}/{errors.shape[-1]}")                    
                     if idx == len(errors):
                         median_err = np.median(errors)
