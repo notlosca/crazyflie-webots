@@ -41,7 +41,7 @@ test = {# 'orientation':(0,0,np.pi/2), # Perpendicular to the gate
         'orientation':(0,0,np.pi/2 + relative_angle), # Facing the gate centre
         'theta':relative_angle, 
         'take_off_height':1.5, 
-        'sigma':0.289}
+        'sigma':0.215}
 ########### ------------------ TEST PARAMETERS -------------------- ###########
 
 ########### ------------------ SAVING THINGS -------------------- ###########
