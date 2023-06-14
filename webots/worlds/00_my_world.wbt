@@ -2,8 +2,8 @@
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.09388502397861574 0.0514997436309468 0.9942501590034982 2.1430341562811526
-  position 1.6115065410599319 -3.6128232038077046 0.9169596251534425
+  orientation -0.11367411038550125 0.06309589864228429 0.9915125335579915 2.1353960850818634
+  position 3.0999821260569496 -6.036492464972338 1.7680461024509875
   follow "MY_Crazyflie"
 }
 Floor {
@@ -166,7 +166,7 @@ DEF GATE Solid {
             baseColor 1 0.8 0.6
             baseColorMap ImageTexture {
               url [
-                "/home/lorenzo/crazyflie-simulation/webots/worlds/textures/imav2022-gate/GateTex_orange.png"
+                "textures/imav2022-gate/GateTex_orange.png"
               ]
             }
             roughness 1

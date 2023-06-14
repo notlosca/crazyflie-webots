@@ -30,6 +30,7 @@ sys.path.append('../../../controllers/')
 sys.path.append('../../../../scarciglia-nanodrone-gate-detection/')
 
 from src import corner, rotation, geometry
+from src import filter as flt
 from pid_controller import pid_velocity_fixed_height_controller
 
 FLYING_ATTITUDE = 1
@@ -42,7 +43,7 @@ collect_data = True
 if collect_data:
         
     parent_folder = '../../datasets/EXP-6-IBVS_SMOOTH_START'
-    folder = parent_folder +'/tests_with_jacobian/'+ '02_corner_det_test_filter'
+    folder = parent_folder +'/tests_elia/'+ '00_corner_det_test_no_filter'
 
     imgs_folder = f'{folder}/imgs/'
     imgs_ibvs_folder = f'{folder}/imgs_ibvs/'
@@ -193,9 +194,11 @@ if __name__ == '__main__':
     GT_detection = np.zeros(shape=(3,2,4))
     detections = []
     GT_detections = []
-    filter = {'alpha':0.5, 'order':1}
+    filter = {'alpha':1.0, 'order':1}
     vs_counter = 0
-    
+    ibvs_v_xs = np.zeros(shape=(2,1))
+    ibvs_w_zs = np.zeros(shape=(2,1))
+
     # Smooth start
     first_error = None
     mu = 0.08
@@ -477,8 +480,6 @@ if __name__ == '__main__':
                 else:
                 
                     e = pd - p_detected
-                    
-                vs_counter += 1
                 
                 err = np.linalg.norm(e)
 
@@ -599,9 +600,28 @@ if __name__ == '__main__':
                 
             ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z = v_drone
 
-            forward_desired = ibvs_v_x
+            if vs_counter == 0:
+                ibvs_v_xs[0] = ibvs_v_x
+                forward_desired = ibvs_v_x
+                ibvs_v_xs[0] = forward_desired
+
+                ibvs_w_zs[0] = ibvs_w_z
+                yaw_desired = ibvs_w_z
+                ibvs_w_zs[0] = yaw_desired
+            else:
+                ibvs_v_xs[1] = ibvs_v_xs[0]
+                ibvs_v_xs[0] = ibvs_v_x
+                forward_desired = flt.exp_smooth(ibvs_v_xs, alpha=0.5)
+                ibvs_v_xs[0] = forward_desired
+
+                ibvs_w_zs[1] = ibvs_w_zs[0]
+                ibvs_w_zs[0] = ibvs_w_z
+                yaw_desired = flt.exp_smooth(ibvs_w_zs, alpha=0.5)
+                ibvs_w_zs[0] = yaw_desired
+            
+            # forward_desired = ibvs_v_x
             sideways_desired = ibvs_v_y
-            yaw_desired = ibvs_w_z
+            # yaw_desired = ibvs_w_z
             height_diff_desired = ibvs_v_z
             
             # New height. Integrate v_z to get the next position.
@@ -609,6 +629,7 @@ if __name__ == '__main__':
 
             ########### ------------------ DETECTION VISUAL SERVOING ------------------ ###########
             
+            vs_counter += 1
 
             ## PID velocity controller with fixed height. Height given as position.
             motor_power = PID_CF.pid(dt, forward_desired, sideways_desired,
