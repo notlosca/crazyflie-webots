@@ -56,7 +56,7 @@ class pid_velocity_fixed_height_controller():
         alt_deriv = (alt_error - self.past_alt_error) / dt
         self.altitude_integrator += alt_error * dt
         alt_command = gains["kp_z"] * alt_error + gains["kd_z"] * alt_deriv + \
-            gains["ki_z"] * np.clip(self.altitude_integrator, -2, 2) + 48
+            gains["ki_z"] * np.clip(self.altitude_integrator, -2, 2) + 48 # feedforward control to counter the effect of gravity
         self.past_alt_error = alt_error
 
         # print('alt_command', alt_command)
