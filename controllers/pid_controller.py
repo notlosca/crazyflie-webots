@@ -45,6 +45,11 @@ class pid_velocity_fixed_height_controller():
         vy_deriv = (vy_error - self.past_vy_error) / dt
         desired_pitch = gains["kp_vel_xy"] * np.clip(vx_error, -1, 1) + gains["kd_vel_xy"] * vx_deriv
         desired_roll = -gains["kp_vel_xy"] * np.clip(vy_error, -1, 1) - gains["kd_vel_xy"] * vy_deriv
+        
+        # Clip the roll and the pitch
+        desired_roll = np.clip(desired_roll, -np.deg2rad(30), np.deg2rad(30))
+        desired_pitch = np.clip(desired_pitch, -np.deg2rad(30), np.deg2rad(30))
+
         self.past_vx_error = vx_error
         self.past_vy_error = vy_error
 
@@ -72,6 +77,11 @@ class pid_velocity_fixed_height_controller():
         yaw_command = gains["kp_att_y"] * np.clip(yaw_rate_error, -1, 1)
         self.past_pitch_error = pitch_error
         self.past_roll_error = roll_error
+
+        print(f'alt_command: {alt_command:.3f}')
+        print(f'roll_command: {roll_command:.3f}')
+        print(f'pitch_command: {pitch_command:.3f}')
+        print(f'yaw_command: {yaw_command:.3f}')
 
         # Motor mixing
         m1 = alt_command - roll_command + pitch_command + yaw_command
