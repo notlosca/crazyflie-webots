@@ -35,6 +35,10 @@ from pid_controller import pid_velocity_fixed_height_controller
 
 FLYING_ATTITUDE = 1
 np.random.seed(0)
+########### ------------------ TEST PARAM ------------------ ###########
+smooth_velocity = {'flag':True, 'alpha':0.01}
+########### ------------------ TEST PARAM ------------------ ###########
+
 ########### ------------------ SAVING THINGS -------------------- ###########
     
 # Set to True if you want to collect data
@@ -601,49 +605,48 @@ if __name__ == '__main__':
                 break
                 
             ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z = v_drone
+            if smooth_velocity['flag']:
+                if vs_counter == 0:
+                    ibvs_v_xs[0] = ibvs_v_x
+                    forward_desired = ibvs_v_x
+                    ibvs_v_xs[0] = forward_desired
 
-            if vs_counter == 0:
-                ibvs_v_xs[0] = ibvs_v_x
+                    ibvs_v_ys[0] = ibvs_v_y
+                    sideways_desired = ibvs_v_y
+                    ibvs_v_ys[0] = sideways_desired
+                    
+                    ibvs_v_zs[0] = ibvs_v_z
+                    height_diff_desired = ibvs_v_z
+                    ibvs_v_zs[0] = height_diff_desired
+
+                    ibvs_w_zs[0] = ibvs_w_z
+                    yaw_desired = ibvs_w_z
+                    ibvs_w_zs[0] = yaw_desired
+                else:
+                    ibvs_v_xs[1] = ibvs_v_xs[0]
+                    ibvs_v_xs[0] = ibvs_v_x
+                    forward_desired = flt.exp_smooth(ibvs_v_xs, alpha=smooth_velocity['alpha'])
+                    ibvs_v_xs[0] = forward_desired
+
+                    ibvs_v_ys[1] = ibvs_v_ys[0]
+                    ibvs_v_ys[0] = ibvs_v_y
+                    sideways_desired = flt.exp_smooth(ibvs_v_ys, alpha=smooth_velocity['alpha'])
+                    ibvs_v_ys[0] = sideways_desired
+
+                    ibvs_v_zs[1] = ibvs_v_zs[0]
+                    ibvs_v_zs[0] = ibvs_v_z
+                    height_diff_desired = flt.exp_smooth(ibvs_v_zs, alpha=smooth_velocity['alpha'])
+                    ibvs_v_zs[0] = height_diff_desired
+
+                    ibvs_w_zs[1] = ibvs_w_zs[0]
+                    ibvs_w_zs[0] = ibvs_w_z
+                    yaw_desired = flt.exp_smooth(ibvs_w_zs, alpha=smooth_velocity['alpha'])
+                    ibvs_w_zs[0] = yaw_desired
+            else:            
                 forward_desired = ibvs_v_x
-                ibvs_v_xs[0] = forward_desired
-
-                ibvs_v_ys[0] = ibvs_v_y
                 sideways_desired = ibvs_v_y
-                ibvs_v_ys[0] = sideways_desired
-                
-                ibvs_v_zs[0] = ibvs_v_z
-                height_diff_desired = ibvs_v_z
-                ibvs_v_zs[0] = height_diff_desired
-
-                ibvs_w_zs[0] = ibvs_w_z
                 yaw_desired = ibvs_w_z
-                ibvs_w_zs[0] = yaw_desired
-            else:
-                ibvs_v_xs[1] = ibvs_v_xs[0]
-                ibvs_v_xs[0] = ibvs_v_x
-                forward_desired = flt.exp_smooth(ibvs_v_xs, alpha=0.01)
-                ibvs_v_xs[0] = forward_desired
-
-                ibvs_v_ys[1] = ibvs_v_ys[0]
-                ibvs_v_ys[0] = ibvs_v_y
-                sideways_desired = flt.exp_smooth(ibvs_v_ys, alpha=0.01)
-                ibvs_v_ys[0] = sideways_desired
-
-                ibvs_v_zs[1] = ibvs_v_zs[0]
-                ibvs_v_zs[0] = ibvs_v_z
-                height_diff_desired = flt.exp_smooth(ibvs_v_zs, alpha=0.01)
-                ibvs_v_zs[0] = height_diff_desired
-
-                ibvs_w_zs[1] = ibvs_w_zs[0]
-                ibvs_w_zs[0] = ibvs_w_z
-                yaw_desired = flt.exp_smooth(ibvs_w_zs, alpha=0.5)
-                ibvs_w_zs[0] = yaw_desired
-            print(forward_desired)
-            
-            # forward_desired = ibvs_v_x
-            # sideways_desired = ibvs_v_y
-            # yaw_desired = ibvs_w_z
-            # height_diff_desired = ibvs_v_z
+                height_diff_desired = ibvs_v_z
             
             # New height. Integrate v_z to get the next position.
             height_desired += height_diff_desired * dt 
