@@ -78,10 +78,10 @@ class pid_velocity_fixed_height_controller():
         self.past_pitch_error = pitch_error
         self.past_roll_error = roll_error
 
-        print(f'alt_command: {alt_command:.3f}')
-        print(f'roll_command: {roll_command:.3f}')
-        print(f'pitch_command: {pitch_command:.3f}')
-        print(f'yaw_command: {yaw_command:.3f}')
+        # print(f'alt_command: {alt_command:.3f}')
+        # print(f'roll_command: {roll_command:.3f}')
+        # print(f'pitch_command: {pitch_command:.3f}')
+        # print(f'yaw_command: {yaw_command:.3f}')
 
         # Motor mixing
         m1 = alt_command - roll_command + pitch_command + yaw_command
