@@ -3,8 +3,8 @@ WorldInfo {
 }
 Viewpoint {
   fieldOfView 0.9
-  orientation -0.31436803187631734 0.17408446603530428 0.9332027321109887 2.138083595643418
-  position 2.2125978956987895 -4.827208836715183 4.171670985759542
+  orientation -0.2571171286435864 0.23955134416429097 0.9362189571180232 1.6455593271867537
+  position -1.0490055392335584 -3.8181960746210595 2.3869598675970334
   followType "Mounted Shot"
   followSmoothness 0.1
 }
@@ -17,139 +17,139 @@ TexturedBackgroundLight {
 DEF GATE Solid {
   rotation 0 1 0 0
   children [
-    Robot {
-      translation 0.2 -0.05 0.8
-      children [
-        GPS {
-          children [
-            Solid {
-              scale 0.2 0.2 0.2
-              children [
-                Shape {
-                  appearance PBRAppearance {
-                    baseColor 0 1 0
-                    transparency 1
-                    roughness 1
-                  }
-                  geometry Sphere {
-                    radius 0.1
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-      name "sensor_br"
-      controller "gate_corner_position_controller"
-    }
-    Robot {
-      translation -0.2 -0.05 0.8
-      children [
-        GPS {
-          children [
-            Solid {
-              scale 0.2 0.2 0.2
-              children [
-                Shape {
-                  appearance PBRAppearance {
-                    baseColor 0 1 0
-                    transparency 1
-                    roughness 1
-                  }
-                  geometry Sphere {
-                    radius 0.1
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-      name "sensor_bl"
-      controller "gate_corner_position_controller"
-    }
-    Robot {
-      translation -0.2 -0.05 1.2
-      children [
-        GPS {
-          children [
-            Solid {
-              scale 0.2 0.2 0.2
-              children [
-                Shape {
-                  appearance PBRAppearance {
-                    baseColor 0 1 0
-                    transparency 1
-                    roughness 1
-                  }
-                  geometry Sphere {
-                    radius 0.1
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-      name "sensor_tl"
-      controller "gate_corner_position_controller"
-    }
-    Robot {
-      translation 0.2 -0.05 1.2
-      children [
-        GPS {
-          children [
-            Solid {
-              scale 0.2 0.2 0.2
-              children [
-                Shape {
-                  appearance PBRAppearance {
-                    baseColor 0 1 0
-                    transparency 1
-                    roughness 1
-                  }
-                  geometry Sphere {
-                    radius 0.1
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-      name "sensor_tr"
-      controller "gate_corner_position_controller"
-    }
-    Robot {
-      translation 0 -0.05 1
-      children [
-        GPS {
-          children [
-            Solid {
-              scale 0.2 0.2 0.2
-              children [
-                Shape {
-                  appearance PBRAppearance {
-                    baseColor 1 0 1
-                    transparency 1
-                    roughness 1
-                  }
-                  geometry Sphere {
-                    radius 0.1
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-      name "sensor_gate-center"
-      controller "gate_corner_position_controller"
-    }
     Solid {
       rotation 0 1 0 0
       children [
+        Robot {
+          translation 0.2 -0.05 0.8
+          children [
+            GPS {
+              children [
+                Solid {
+                  scale 0.2 0.2 0.2
+                  children [
+                    Shape {
+                      appearance PBRAppearance {
+                        baseColor 0 1 0
+                        transparency 1
+                        roughness 1
+                      }
+                      geometry Sphere {
+                        radius 0.1
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          name "sensor_br"
+          controller "gate_corner_position_controller"
+        }
+        Robot {
+          translation -0.2 -0.05 0.8
+          children [
+            GPS {
+              children [
+                Solid {
+                  scale 0.2 0.2 0.2
+                  children [
+                    Shape {
+                      appearance PBRAppearance {
+                        baseColor 0 1 0
+                        transparency 1
+                        roughness 1
+                      }
+                      geometry Sphere {
+                        radius 0.1
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          name "sensor_bl"
+          controller "gate_corner_position_controller"
+        }
+        Robot {
+          translation -0.2 -0.05 1.2
+          children [
+            GPS {
+              children [
+                Solid {
+                  scale 0.2 0.2 0.2
+                  children [
+                    Shape {
+                      appearance PBRAppearance {
+                        baseColor 0 1 0
+                        transparency 1
+                        roughness 1
+                      }
+                      geometry Sphere {
+                        radius 0.1
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          name "sensor_tl"
+          controller "gate_corner_position_controller"
+        }
+        Robot {
+          translation 0.2 -0.05 1.2
+          children [
+            GPS {
+              children [
+                Solid {
+                  scale 0.2 0.2 0.2
+                  children [
+                    Shape {
+                      appearance PBRAppearance {
+                        baseColor 0 1 0
+                        transparency 1
+                        roughness 1
+                      }
+                      geometry Sphere {
+                        radius 0.1
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          name "sensor_tr"
+          controller "gate_corner_position_controller"
+        }
+        Robot {
+          translation 0 -0.05 1
+          children [
+            GPS {
+              children [
+                Solid {
+                  scale 0.2 0.2 0.2
+                  children [
+                    Shape {
+                      appearance PBRAppearance {
+                        baseColor 1 0 1
+                        transparency 1
+                        roughness 1
+                      }
+                      geometry Sphere {
+                        radius 0.1
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          name "sensor_gate-center"
+          controller "gate_corner_position_controller"
+        }
         DEF SHAPE Shape {
           appearance PBRAppearance {
             baseColor 1 0.8 0.6
@@ -191,8 +191,8 @@ DEF GATE Solid {
   name "imav2022-gate(1)"
 }
 DEF CRAZYFLIE Robot {
-  translation 0 -1.05 0.015
-  rotation 0 0 1 1.5708
+  translation -7.39892640659609e-19 -1.0500000000060887 0.015001652110592333
+  rotation -6.2089806616108374e-15 6.098612181393682e-15 1 1.5708000000000004
   children [
     DEF Multiranger Transform {
       translation 0 0 0.02
@@ -438,6 +438,8 @@ DEF CRAZYFLIE Robot {
   }
   controller "collect_dataset_controller"
   supervisor TRUE
+  linearVelocity -1.5894108220264243e-17 -8.481246589390036e-11 2.2946602763589397e-05
+  angularVelocity -1.7089504414765802e-13 -1.215023386071262e-15 -4.3776520379198415e-17
 }
 DEF Cyberzoo Transform {
   translation -5 -5 0
@@ -9524,6 +9526,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0 1 0
+      ]
     }
     Solid {
       translation -1.12 12.09 -9.53195e-07
@@ -10350,6 +10355,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        1 0 1
+      ]
     }
     Solid {
       translation -1.12 10.96 -8.64104e-07
@@ -11176,6 +11184,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0 0.5 1
+      ]
     }
     Solid {
       translation -1.12 10 -7.88423e-07
@@ -12002,6 +12013,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0.9065207747741162 0.5024801177210232 0.008259660037883254
+      ]
     }
     Solid {
       translation -1.12 9.04 -7.12747e-07
@@ -12828,6 +12842,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0.3567527974685373 0.03680647306740026 0.6263518954645247
+      ]
     }
     Solid {
       translation -1.12 8.08 -6.37069e-07
@@ -13654,6 +13671,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0.33029140517011724 0.9892907601237497 0.656555761859386
+      ]
     }
     Solid {
       translation -1.12 7.1 -5.59802e-07
@@ -14480,6 +14500,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0.8290333515686303 0.5098066460287113 0.7341624558681898
+      ]
     }
     Solid {
       translation -1.12 6.03 -4.75445e-07
@@ -15306,6 +15329,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0.0788721438341875 0.49521742169284966 0.30185697034858894
+      ]
     }
     Solid {
       translation -3.08 0 0
@@ -16133,11 +16159,14 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0.9580478637460698 0.9926100843886646 0.2668049897097904
+      ]
     }
     Solid {
-      translation 0.859678 -2.5904 0.01
+      translation 0.304322 -0.992198 0.00999996
       rotation 2.99461e-07 3.94247e-08 1 -0.261795307179586
-      scale 0.0254 0.0254 0.0254
+      scale 0.05 0.05 0.05
       children [
         Solid {
           rotation 0 1 0 0
@@ -16199,6 +16228,9 @@ DEF Objects Group {
         }
       ]
       name "Mat - Traffic"
+      recognitionColors [
+        0.9469055963711608 0.01610365481349696 0.2374332253179584
+      ]
     }
     Solid {
       translation 1.59 8.04 -7.90433e-07
@@ -17158,6 +17190,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0.4741002417153083 0.21009405568122097 0.11604429812322725
+      ]
     }
     Solid {
       translation 1.59 7.05 -6.98428e-07
@@ -18117,6 +18152,78 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0.5347090444091542 0.7837869423691247 0.15923930349135917
+      ]
+    }
+    Solid {
+      translation 0.304322 -0.992198 0.00999996
+      rotation 2.99461e-07 3.94247e-08 1 -0.261795307179586
+      scale 0.1 0.1 0.1
+      children [
+        Solid {
+          rotation 0 1 0 0
+          children [
+            Solid {
+              translation -12.9204 -93.0862 43.7275
+              rotation 0.980803566316042 -0.08739022145376973 -0.1743195728998727 0.9450301
+              name "$ColladaAutoName$_1"
+            }
+            Solid {
+              rotation 0 1 0 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColorMap ImageTexture {
+                      url [
+                        "textures/traffic_mat/mat_traffic_1.png"
+                      ]
+                    }
+                    roughness 1
+                    metalness 0
+                    name "mat_traffic_1"
+                  }
+                  geometry IndexedFaceSet {
+                    coord Coordinate {
+                      point [
+                        39.3701 -39.3701 0
+                        -39.3701 39.3701 0
+                        -39.3701 -39.3701 0
+                        39.3701 39.3701 0
+                      ]
+                    }
+                    normal Normal {
+                      vector [
+                        0 0 1
+                        0 0 1
+                        0 0 1
+                        0 0 1
+                      ]
+                    }
+                    texCoord TextureCoordinate {
+                      point [
+                        1 -1
+                        0 -0.00981997
+                        0 -1
+                        1 -0.00981997
+                      ]
+                    }
+                    coordIndex [
+                      0, 1, 2, -1, 1, 0, 3, -1
+                    ]
+                  }
+                }
+              ]
+              name "ID3"
+            }
+          ]
+          name "$ColladaAutoName$_0"
+        }
+      ]
+      name "Mat - Traffic(1)"
+      recognitionColors [
+        0 0 1
+      ]
     }
     Solid {
       translation 1.59 5.99 -5.99922e-07
@@ -19076,6 +19183,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0.5978415067794337 0.7892868825712169 0.9838527866723552
+      ]
     }
     Solid {
       translation -2.57 -3.07 2.42056e-07
@@ -20035,6 +20145,78 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0 1 1
+      ]
+    }
+    Solid {
+      translation 0.304322 -0.992198 0.00999996
+      rotation 2.99461e-07 3.94247e-08 1 -0.261795307179586
+      scale 0.1 0.1 0.1
+      children [
+        Solid {
+          rotation 0 1 0 0
+          children [
+            Solid {
+              translation -12.9204 -93.0862 43.7275
+              rotation 0.980803566316042 -0.08739022145376973 -0.1743195728998727 0.9450301
+              name "$ColladaAutoName$_1"
+            }
+            Solid {
+              rotation 0 1 0 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColorMap ImageTexture {
+                      url [
+                        "textures/traffic_mat/mat_traffic_1.png"
+                      ]
+                    }
+                    roughness 1
+                    metalness 0
+                    name "mat_traffic_1"
+                  }
+                  geometry IndexedFaceSet {
+                    coord Coordinate {
+                      point [
+                        39.3701 -39.3701 0
+                        -39.3701 39.3701 0
+                        -39.3701 -39.3701 0
+                        39.3701 39.3701 0
+                      ]
+                    }
+                    normal Normal {
+                      vector [
+                        0 0 1
+                        0 0 1
+                        0 0 1
+                        0 0 1
+                      ]
+                    }
+                    texCoord TextureCoordinate {
+                      point [
+                        1 -1
+                        0 -0.00981997
+                        0 -1
+                        1 -0.00981997
+                      ]
+                    }
+                    coordIndex [
+                      0, 1, 2, -1, 1, 0, 3, -1
+                    ]
+                  }
+                }
+              ]
+              name "ID3"
+            }
+          ]
+          name "$ColladaAutoName$_0"
+        }
+      ]
+      name "Mat - Traffic(3)"
+      recognitionColors [
+        0.5281723642656108 0.29938943910376314 0.9947429126637019
+      ]
     }
     Solid {
       translation 4.94 1.81456e-05 -2.21368e-13
@@ -20199,6 +20381,216 @@ DEF Objects Group {
         }
       ]
       name "Curtain - Striped"
+      recognitionColors [
+        0.37185458968248253 0.566410034534775 0.649415643777105
+      ]
+    }
+    Solid {
+      translation 1.77932 1.56256 0.00999979
+      rotation -6.82844e-08 3.94241e-08 1 1.0472
+      scale 0.05 0.05 0.05
+      children [
+        Solid {
+          rotation 0 1 0 0
+          children [
+            Solid {
+              translation -12.9204 -93.0862 43.7275
+              rotation 0.980803566316042 -0.08739022145376973 -0.1743195728998727 0.9450301
+              name "$ColladaAutoName$_1"
+            }
+            Solid {
+              rotation 0 1 0 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColorMap ImageTexture {
+                      url [
+                        "textures/traffic_mat/mat_traffic_1.png"
+                      ]
+                    }
+                    roughness 1
+                    metalness 0
+                    name "mat_traffic_1"
+                  }
+                  geometry IndexedFaceSet {
+                    coord Coordinate {
+                      point [
+                        39.3701 -39.3701 0
+                        -39.3701 39.3701 0
+                        -39.3701 -39.3701 0
+                        39.3701 39.3701 0
+                      ]
+                    }
+                    normal Normal {
+                      vector [
+                        0 0 1
+                        0 0 1
+                        0 0 1
+                        0 0 1
+                      ]
+                    }
+                    texCoord TextureCoordinate {
+                      point [
+                        1 -1
+                        0 -0.00981997
+                        0 -1
+                        1 -0.00981997
+                      ]
+                    }
+                    coordIndex [
+                      0, 1, 2, -1, 1, 0, 3, -1
+                    ]
+                  }
+                }
+              ]
+              name "ID3"
+            }
+          ]
+          name "$ColladaAutoName$_0"
+        }
+      ]
+      name "Mat - Traffic(2)"
+      recognitionColors [
+        0.7423569958095837 0.1980743678930621 0.5345753022394523
+      ]
+    }
+    Solid {
+      translation -1.35714 -0.547044 0.00999995
+      rotation -3.94241e-08 3.94241e-08 1 1.5708
+      scale 0.1 0.1 0.1
+      children [
+        Solid {
+          rotation 0 1 0 0
+          children [
+            Solid {
+              translation -12.9204 -93.0862 43.7275
+              rotation 0.980803566316042 -0.08739022145376973 -0.1743195728998727 0.9450301
+              name "$ColladaAutoName$_1"
+            }
+            Solid {
+              rotation 0 1 0 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColorMap ImageTexture {
+                      url [
+                        "textures/traffic_mat/mat_traffic_1.png"
+                      ]
+                    }
+                    roughness 1
+                    metalness 0
+                    name "mat_traffic_1"
+                  }
+                  geometry IndexedFaceSet {
+                    coord Coordinate {
+                      point [
+                        39.3701 -39.3701 0
+                        -39.3701 39.3701 0
+                        -39.3701 -39.3701 0
+                        39.3701 39.3701 0
+                      ]
+                    }
+                    normal Normal {
+                      vector [
+                        0 0 1
+                        0 0 1
+                        0 0 1
+                        0 0 1
+                      ]
+                    }
+                    texCoord TextureCoordinate {
+                      point [
+                        1 -1
+                        0 -0.00981997
+                        0 -1
+                        1 -0.00981997
+                      ]
+                    }
+                    coordIndex [
+                      0, 1, 2, -1, 1, 0, 3, -1
+                    ]
+                  }
+                }
+              ]
+              name "ID3"
+            }
+          ]
+          name "$ColladaAutoName$_0"
+        }
+      ]
+      name "Mat - Traffic(7)"
+      recognitionColors [
+        0.02579011035126788 0.8343013989445262 0.3425406360166342
+      ]
+    }
+    Solid {
+      translation 0.304322 -0.992198 0.00999996
+      rotation 2.99461e-07 3.94247e-08 1 -0.261795307179586
+      scale 0.1 0.1 0.1
+      children [
+        Solid {
+          rotation 0 1 0 0
+          children [
+            Solid {
+              translation -12.9204 -93.0862 43.7275
+              rotation 0.980803566316042 -0.08739022145376973 -0.1743195728998727 0.9450301
+              name "$ColladaAutoName$_1"
+            }
+            Solid {
+              rotation 0 1 0 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColorMap ImageTexture {
+                      url [
+                        "textures/traffic_mat/mat_traffic_1.png"
+                      ]
+                    }
+                    roughness 1
+                    metalness 0
+                    name "mat_traffic_1"
+                  }
+                  geometry IndexedFaceSet {
+                    coord Coordinate {
+                      point [
+                        39.3701 -39.3701 0
+                        -39.3701 39.3701 0
+                        -39.3701 -39.3701 0
+                        39.3701 39.3701 0
+                      ]
+                    }
+                    normal Normal {
+                      vector [
+                        0 0 1
+                        0 0 1
+                        0 0 1
+                        0 0 1
+                      ]
+                    }
+                    texCoord TextureCoordinate {
+                      point [
+                        1 -1
+                        0 -0.00981997
+                        0 -1
+                        1 -0.00981997
+                      ]
+                    }
+                    coordIndex [
+                      0, 1, 2, -1, 1, 0, 3, -1
+                    ]
+                  }
+                }
+              ]
+              name "ID3"
+            }
+          ]
+          name "$ColladaAutoName$_0"
+        }
+      ]
+      name "Mat - Traffic(4)"
+      recognitionColors [
+        0.03907013104885049 0.2982650566569638 0.6175915899408702
+      ]
     }
     Solid {
       translation -2.31 1.98 -1.56114e-07
@@ -20252,6 +20644,147 @@ DEF Objects Group {
         }
       ]
       name "Pole - Orange"
+      recognitionColors [
+        0.841807240576569 0.8381933865128567 0.6578117290201531
+      ]
+    }
+    Solid {
+      translation 0.304322 -0.992198 0.00999996
+      rotation -9.51779e-08 3.9424e-08 1 0.785402
+      scale 0.1 0.1 0.1
+      children [
+        Solid {
+          rotation 0 1 0 0
+          children [
+            Solid {
+              translation -12.9204 -93.0862 43.7275
+              rotation 0.980803566316042 -0.08739022145376973 -0.1743195728998727 0.9450301
+              name "$ColladaAutoName$_1"
+            }
+            Solid {
+              rotation 0 1 0 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColorMap ImageTexture {
+                      url [
+                        "textures/traffic_mat/mat_traffic_1.png"
+                      ]
+                    }
+                    roughness 1
+                    metalness 0
+                    name "mat_traffic_1"
+                  }
+                  geometry IndexedFaceSet {
+                    coord Coordinate {
+                      point [
+                        39.3701 -39.3701 0
+                        -39.3701 39.3701 0
+                        -39.3701 -39.3701 0
+                        39.3701 39.3701 0
+                      ]
+                    }
+                    normal Normal {
+                      vector [
+                        0 0 1
+                        0 0 1
+                        0 0 1
+                        0 0 1
+                      ]
+                    }
+                    texCoord TextureCoordinate {
+                      point [
+                        1 -1
+                        0 -0.00981997
+                        0 -1
+                        1 -0.00981997
+                      ]
+                    }
+                    coordIndex [
+                      0, 1, 2, -1, 1, 0, 3, -1
+                    ]
+                  }
+                }
+              ]
+              name "ID3"
+            }
+          ]
+          name "$ColladaAutoName$_0"
+        }
+      ]
+      name "Mat - Traffic(5)"
+      recognitionColors [
+        0.009555951540487828 0.7489141674824689 0.7781347435254844
+      ]
+    }
+    Solid {
+      translation 0.304322 -0.992198 0.00999996
+      rotation -2.99452e-07 3.94237e-08 1 0.261803
+      scale 0.1 0.1 0.1
+      children [
+        Solid {
+          rotation 0 1 0 0
+          children [
+            Solid {
+              translation -12.9204 -93.0862 43.7275
+              rotation 0.980803566316042 -0.08739022145376973 -0.1743195728998727 0.9450301
+              name "$ColladaAutoName$_1"
+            }
+            Solid {
+              rotation 0 1 0 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColorMap ImageTexture {
+                      url [
+                        "textures/traffic_mat/mat_traffic_1.png"
+                      ]
+                    }
+                    roughness 1
+                    metalness 0
+                    name "mat_traffic_1"
+                  }
+                  geometry IndexedFaceSet {
+                    coord Coordinate {
+                      point [
+                        39.3701 -39.3701 0
+                        -39.3701 39.3701 0
+                        -39.3701 -39.3701 0
+                        39.3701 39.3701 0
+                      ]
+                    }
+                    normal Normal {
+                      vector [
+                        0 0 1
+                        0 0 1
+                        0 0 1
+                        0 0 1
+                      ]
+                    }
+                    texCoord TextureCoordinate {
+                      point [
+                        1 -1
+                        0 -0.00981997
+                        0 -1
+                        1 -0.00981997
+                      ]
+                    }
+                    coordIndex [
+                      0, 1, 2, -1, 1, 0, 3, -1
+                    ]
+                  }
+                }
+              ]
+              name "ID3"
+            }
+          ]
+          name "$ColladaAutoName$_0"
+        }
+      ]
+      name "Mat - Traffic(6)"
+      recognitionColors [
+        0.5 0.5 0
+      ]
     }
     Solid {
       translation 3.38 7.24 -5.70539e-07
@@ -20617,6 +21150,9 @@ DEF Objects Group {
         }
       ]
       name "Panel - Metal 4"
+      recognitionColors [
+        0.04030959571871795 0.6833800469734816 0.014577863343400943
+      ]
     }
     Solid {
       translation 3.38 6.57 -5.17743e-07
@@ -20982,6 +21518,9 @@ DEF Objects Group {
         }
       ]
       name "Panel - Metal 3"
+      recognitionColors [
+        0.5 0 1
+      ]
     }
     Solid {
       translation 3.38 5.98 -4.71251e-07
@@ -21347,9 +21886,12 @@ DEF Objects Group {
         }
       ]
       name "Panel - Metal 2"
+      recognitionColors [
+        0.014826417033101169 0.08114427229148902 0.37511491048658674
+      ]
     }
     Solid {
-      translation 1.61 0 0
+      translation 3.0043 0.804999 -6.34739e-08
       rotation 6.82857e-08 3.94247e-08 1 -1.047195307179586
       scale 0.0254 0.0254 0.0254
       children [
@@ -21712,11 +22254,14 @@ DEF Objects Group {
         }
       ]
       name "Panel - Metal 1"
+      recognitionColors [
+        0.978978139290443 0.6681940626612412 0.341949311991251
+      ]
     }
     Solid {
       translation 0 0 0.01
       rotation -1 0 0 7.88495e-08
-      scale 0.0254 0.0254 0.0254
+      scale 0.05 0.05 0.05
       children [
         Solid {
           rotation 0 1 0 0
@@ -21778,6 +22323,561 @@ DEF Objects Group {
         }
       ]
       name "Mat - Airport"
+      recognitionColors [
+        0.6031181464817154 0.46259876946844714 0.3632235654906182
+      ]
+    }
+    Solid {
+      translation 0 1.72 0.00999986
+      rotation -5.13793e-08 3.94247e-08 1 1.309
+      scale 0.05 0.05 0.05
+      children [
+        Solid {
+          rotation 0 1 0 0
+          children [
+            Solid {
+              translation 3.08162 -68.7093 16.7642
+              rotation 0.996811730621318 0.039670979228769825 0.06922851365415172 1.0434834
+              name "$ColladaAutoName$_1"
+            }
+            Solid {
+              rotation 0 1 0 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColorMap ImageTexture {
+                      url [
+                        "textures/airport_mat/mat_airport.png"
+                      ]
+                    }
+                    roughness 1
+                    metalness 0
+                    name "mat_airport"
+                  }
+                  geometry IndexedFaceSet {
+                    coord Coordinate {
+                      point [
+                        -18.7008 39.3701 0
+                        -18.7008 -39.3701 0
+                        18.7008 -39.3701 1.57772e-30
+                        18.7008 39.3701 1.57772e-30
+                      ]
+                    }
+                    normal Normal {
+                      vector [
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                      ]
+                    }
+                    texCoord TextureCoordinate {
+                      point [
+                        0 1
+                        0 0
+                        1 0
+                        1 1
+                      ]
+                    }
+                    coordIndex [
+                      0, 1, 2, -1, 0, 2, 3, -1
+                    ]
+                  }
+                }
+              ]
+              name "ID3"
+            }
+          ]
+          name "$ColladaAutoName$_0"
+        }
+      ]
+      name "Mat - Airport(3)"
+      recognitionColors [
+        0.971750531941941 0.2861927748668154 0.9142125362994906
+      ]
+    }
+    Solid {
+      translation 0 0 0.01
+      rotation -1 0 0 7.88495e-08
+      scale 0.1 0.1 0.1
+      children [
+        Solid {
+          rotation 0 1 0 0
+          children [
+            Solid {
+              translation 3.08162 -68.7093 16.7642
+              rotation 0.996811730621318 0.039670979228769825 0.06922851365415172 1.0434834
+              name "$ColladaAutoName$_1"
+            }
+            Solid {
+              rotation 0 1 0 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColorMap ImageTexture {
+                      url [
+                        "textures/airport_mat/mat_airport.png"
+                      ]
+                    }
+                    roughness 1
+                    metalness 0
+                    name "mat_airport"
+                  }
+                  geometry IndexedFaceSet {
+                    coord Coordinate {
+                      point [
+                        -18.7008 39.3701 0
+                        -18.7008 -39.3701 0
+                        18.7008 -39.3701 1.57772e-30
+                        18.7008 39.3701 1.57772e-30
+                      ]
+                    }
+                    normal Normal {
+                      vector [
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                      ]
+                    }
+                    texCoord TextureCoordinate {
+                      point [
+                        0 1
+                        0 0
+                        1 0
+                        1 1
+                      ]
+                    }
+                    coordIndex [
+                      0, 1, 2, -1, 0, 2, 3, -1
+                    ]
+                  }
+                }
+              ]
+              name "ID3"
+            }
+          ]
+          name "$ColladaAutoName$_0"
+        }
+      ]
+      name "Mat - Airport(5)"
+      recognitionColors [
+        0.0014568614602544772 0.28755337154828464 0.09527179527983043
+      ]
+    }
+    Solid {
+      translation -2.22 0 0.01
+      rotation -5.13793e-08 3.94247e-08 1 1.309
+      scale 0.1 0.1 0.1
+      children [
+        Solid {
+          rotation 0 1 0 0
+          children [
+            Solid {
+              translation 3.08162 -68.7093 16.7642
+              rotation 0.996811730621318 0.039670979228769825 0.06922851365415172 1.0434834
+              name "$ColladaAutoName$_1"
+            }
+            Solid {
+              rotation 0 1 0 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColorMap ImageTexture {
+                      url [
+                        "textures/airport_mat/mat_airport.png"
+                      ]
+                    }
+                    roughness 1
+                    metalness 0
+                    name "mat_airport"
+                  }
+                  geometry IndexedFaceSet {
+                    coord Coordinate {
+                      point [
+                        -18.7008 39.3701 0
+                        -18.7008 -39.3701 0
+                        18.7008 -39.3701 1.57772e-30
+                        18.7008 39.3701 1.57772e-30
+                      ]
+                    }
+                    normal Normal {
+                      vector [
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                      ]
+                    }
+                    texCoord TextureCoordinate {
+                      point [
+                        0 1
+                        0 0
+                        1 0
+                        1 1
+                      ]
+                    }
+                    coordIndex [
+                      0, 1, 2, -1, 0, 2, 3, -1
+                    ]
+                  }
+                }
+              ]
+              name "ID3"
+            }
+          ]
+          name "$ColladaAutoName$_0"
+        }
+      ]
+      name "Mat - Airport(4)"
+      recognitionColors [
+        0.6659349349670878 0.9978102805924024 0.4276926479506715
+      ]
+    }
+    Solid {
+      translation -0.54 0 0.01
+      rotation -6.82857e-08 3.94247e-08 1 1.0472
+      scale 0.0254 0.0254 0.0254
+      children [
+        Solid {
+          rotation 0 1 0 0
+          children [
+            Solid {
+              translation 3.08162 -68.7093 16.7642
+              rotation 0.996811730621318 0.039670979228769825 0.06922851365415172 1.0434834
+              name "$ColladaAutoName$_1"
+            }
+            Solid {
+              rotation 0 1 0 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColorMap ImageTexture {
+                      url [
+                        "textures/airport_mat/mat_airport.png"
+                      ]
+                    }
+                    roughness 1
+                    metalness 0
+                    name "mat_airport"
+                  }
+                  geometry IndexedFaceSet {
+                    coord Coordinate {
+                      point [
+                        -18.7008 39.3701 0
+                        -18.7008 -39.3701 0
+                        18.7008 -39.3701 1.57772e-30
+                        18.7008 39.3701 1.57772e-30
+                      ]
+                    }
+                    normal Normal {
+                      vector [
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                      ]
+                    }
+                    texCoord TextureCoordinate {
+                      point [
+                        0 1
+                        0 0
+                        1 0
+                        1 1
+                      ]
+                    }
+                    coordIndex [
+                      0, 1, 2, -1, 0, 2, 3, -1
+                    ]
+                  }
+                }
+              ]
+              name "ID3"
+            }
+          ]
+          name "$ColladaAutoName$_0"
+        }
+      ]
+      name "Mat - Airport(1)"
+      recognitionColors [
+        0.9974107476234553 0.34842237492759487 0.30311496462147347
+      ]
+    }
+    Solid {
+      translation 1.06772 1.06774 0.00999992
+      rotation 9.51798e-08 3.94247e-08 1 -0.785395307179586
+      scale 0.1 0.1 0.1
+      children [
+        Solid {
+          rotation 0 1 0 0
+          children [
+            Solid {
+              translation 3.08162 -68.7093 16.7642
+              rotation 0.996811730621318 0.039670979228769825 0.06922851365415172 1.0434834
+              name "$ColladaAutoName$_1"
+            }
+            Solid {
+              rotation 0 1 0 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColorMap ImageTexture {
+                      url [
+                        "textures/airport_mat/mat_airport.png"
+                      ]
+                    }
+                    roughness 1
+                    metalness 0
+                    name "mat_airport"
+                  }
+                  geometry IndexedFaceSet {
+                    coord Coordinate {
+                      point [
+                        -18.7008 39.3701 0
+                        -18.7008 -39.3701 0
+                        18.7008 -39.3701 1.57772e-30
+                        18.7008 39.3701 1.57772e-30
+                      ]
+                    }
+                    normal Normal {
+                      vector [
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                      ]
+                    }
+                    texCoord TextureCoordinate {
+                      point [
+                        0 1
+                        0 0
+                        1 0
+                        1 1
+                      ]
+                    }
+                    coordIndex [
+                      0, 1, 2, -1, 0, 2, 3, -1
+                    ]
+                  }
+                }
+              ]
+              name "ID3"
+            }
+          ]
+          name "$ColladaAutoName$_0"
+        }
+      ]
+      name "Mat - Airport(6)"
+      recognitionColors [
+        0.991986417185207 0.7086441650379891 0.9727879475668679
+      ]
+    }
+    Solid {
+      translation 1.035 1.79265 0.00999988
+      rotation -6.82857e-08 3.94247e-08 1 1.0472
+      scale 0.1 0.1 0.1
+      children [
+        Solid {
+          rotation 0 1 0 0
+          children [
+            Solid {
+              translation 3.08162 -68.7093 16.7642
+              rotation 0.996811730621318 0.039670979228769825 0.06922851365415172 1.0434834
+              name "$ColladaAutoName$_1"
+            }
+            Solid {
+              rotation 0 1 0 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColorMap ImageTexture {
+                      url [
+                        "textures/airport_mat/mat_airport.png"
+                      ]
+                    }
+                    roughness 1
+                    metalness 0
+                    name "mat_airport"
+                  }
+                  geometry IndexedFaceSet {
+                    coord Coordinate {
+                      point [
+                        -18.7008 39.3701 0
+                        -18.7008 -39.3701 0
+                        18.7008 -39.3701 1.57772e-30
+                        18.7008 39.3701 1.57772e-30
+                      ]
+                    }
+                    normal Normal {
+                      vector [
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                      ]
+                    }
+                    texCoord TextureCoordinate {
+                      point [
+                        0 1
+                        0 0
+                        1 0
+                        1 1
+                      ]
+                    }
+                    coordIndex [
+                      0, 1, 2, -1, 0, 2, 3, -1
+                    ]
+                  }
+                }
+              ]
+              name "ID3"
+            }
+          ]
+          name "$ColladaAutoName$_0"
+        }
+      ]
+      name "Mat - Airport(7)"
+      recognitionColors [
+        0.17853142408215705 0.24935708049987104 0.930875547856542
+      ]
+    }
+    Solid {
+      translation 0 -2.11 0.01
+      rotation -3.94248e-08 3.94247e-08 1 1.5708
+      scale 0.1 0.1 0.1
+      children [
+        Solid {
+          rotation 0 1 0 0
+          children [
+            Solid {
+              translation 3.08162 -68.7093 16.7642
+              rotation 0.996811730621318 0.039670979228769825 0.06922851365415172 1.0434834
+              name "$ColladaAutoName$_1"
+            }
+            Solid {
+              rotation 0 1 0 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColorMap ImageTexture {
+                      url [
+                        "textures/airport_mat/mat_airport.png"
+                      ]
+                    }
+                    roughness 1
+                    metalness 0
+                    name "mat_airport"
+                  }
+                  geometry IndexedFaceSet {
+                    coord Coordinate {
+                      point [
+                        -18.7008 39.3701 0
+                        -18.7008 -39.3701 0
+                        18.7008 -39.3701 1.57772e-30
+                        18.7008 39.3701 1.57772e-30
+                      ]
+                    }
+                    normal Normal {
+                      vector [
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                      ]
+                    }
+                    texCoord TextureCoordinate {
+                      point [
+                        0 1
+                        0 0
+                        1 0
+                        1 1
+                      ]
+                    }
+                    coordIndex [
+                      0, 1, 2, -1, 0, 2, 3, -1
+                    ]
+                  }
+                }
+              ]
+              name "ID3"
+            }
+          ]
+          name "$ColladaAutoName$_0"
+        }
+      ]
+      name "Mat - Airport(8)"
+      recognitionColors [
+        0.5984557663510744 0.7321342407135507 0.49291273442265615
+      ]
+    }
+    Solid {
+      translation 1.79 1.38 0.00999989
+      rotation -5.13793e-08 3.94247e-08 1 1.309
+      scale 0.1 0.1 0.1
+      children [
+        Solid {
+          rotation 0 1 0 0
+          children [
+            Solid {
+              translation 3.08162 -68.7093 16.7642
+              rotation 0.996811730621318 0.039670979228769825 0.06922851365415172 1.0434834
+              name "$ColladaAutoName$_1"
+            }
+            Solid {
+              rotation 0 1 0 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColorMap ImageTexture {
+                      url [
+                        "textures/airport_mat/mat_airport.png"
+                      ]
+                    }
+                    roughness 1
+                    metalness 0
+                    name "mat_airport"
+                  }
+                  geometry IndexedFaceSet {
+                    coord Coordinate {
+                      point [
+                        -18.7008 39.3701 0
+                        -18.7008 -39.3701 0
+                        18.7008 -39.3701 1.57772e-30
+                        18.7008 39.3701 1.57772e-30
+                      ]
+                    }
+                    normal Normal {
+                      vector [
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                      ]
+                    }
+                    texCoord TextureCoordinate {
+                      point [
+                        0 1
+                        0 0
+                        1 0
+                        1 1
+                      ]
+                    }
+                    coordIndex [
+                      0, 1, 2, -1, 0, 2, 3, -1
+                    ]
+                  }
+                }
+              ]
+              name "ID3"
+            }
+          ]
+          name "$ColladaAutoName$_0"
+        }
+      ]
+      name "Mat - Airport(9)"
+      recognitionColors [
+        0.301299473856092 0.26893768168684995 0.4077563653240933
+      ]
     }
     Solid {
       translation 0 1.72 -1.35618e-07
@@ -21825,6 +22925,147 @@ DEF Objects Group {
         }
       ]
       name "imav2022-gate"
+      recognitionColors [
+        0.3141633505462639 0.9824861998939317 0.2663291312551975
+      ]
+    }
+    Solid {
+      translation 1.03 -0.67 0.01
+      rotation -6.82857e-08 3.94247e-08 1 1.0472
+      scale 0.05 0.05 0.05
+      children [
+        Solid {
+          rotation 0 1 0 0
+          children [
+            Solid {
+              translation 3.08162 -68.7093 16.7642
+              rotation 0.996811730621318 0.039670979228769825 0.06922851365415172 1.0434834
+              name "$ColladaAutoName$_1"
+            }
+            Solid {
+              rotation 0 1 0 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColorMap ImageTexture {
+                      url [
+                        "textures/airport_mat/mat_airport.png"
+                      ]
+                    }
+                    roughness 1
+                    metalness 0
+                    name "mat_airport"
+                  }
+                  geometry IndexedFaceSet {
+                    coord Coordinate {
+                      point [
+                        -18.7008 39.3701 0
+                        -18.7008 -39.3701 0
+                        18.7008 -39.3701 1.57772e-30
+                        18.7008 39.3701 1.57772e-30
+                      ]
+                    }
+                    normal Normal {
+                      vector [
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                      ]
+                    }
+                    texCoord TextureCoordinate {
+                      point [
+                        0 1
+                        0 0
+                        1 0
+                        1 1
+                      ]
+                    }
+                    coordIndex [
+                      0, 1, 2, -1, 0, 2, 3, -1
+                    ]
+                  }
+                }
+              ]
+              name "ID3"
+            }
+          ]
+          name "$ColladaAutoName$_0"
+        }
+      ]
+      name "Mat - Airport(2)"
+      recognitionColors [
+        0.5684938925643755 0.025154811410843525 0.34275603170052127
+      ]
+    }
+    Solid {
+      translation -2.2 0.87 0.00999997
+      rotation -1.89038e-16 3.94247e-08 1 3.14159
+      scale 0.1 0.1 0.1
+      children [
+        Solid {
+          rotation 0 1 0 0
+          children [
+            Solid {
+              translation 3.08162 -68.7093 16.7642
+              rotation 0.996811730621318 0.039670979228769825 0.06922851365415172 1.0434834
+              name "$ColladaAutoName$_1"
+            }
+            Solid {
+              rotation 0 1 0 0
+              children [
+                Shape {
+                  appearance PBRAppearance {
+                    baseColorMap ImageTexture {
+                      url [
+                        "textures/airport_mat/mat_airport.png"
+                      ]
+                    }
+                    roughness 1
+                    metalness 0
+                    name "mat_airport"
+                  }
+                  geometry IndexedFaceSet {
+                    coord Coordinate {
+                      point [
+                        -18.7008 39.3701 0
+                        -18.7008 -39.3701 0
+                        18.7008 -39.3701 1.57772e-30
+                        18.7008 39.3701 1.57772e-30
+                      ]
+                    }
+                    normal Normal {
+                      vector [
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                        -4.21833e-32 0 1
+                      ]
+                    }
+                    texCoord TextureCoordinate {
+                      point [
+                        0 1
+                        0 0
+                        1 0
+                        1 1
+                      ]
+                    }
+                    coordIndex [
+                      0, 1, 2, -1, 0, 2, 3, -1
+                    ]
+                  }
+                }
+              ]
+              name "ID3"
+            }
+          ]
+          name "$ColladaAutoName$_0"
+        }
+      ]
+      name "Mat - Airport(10)"
+      recognitionColors [
+        0.2858288280404091 0.7121431069697902 0.9938163112774759
+      ]
     }
   ]
 }

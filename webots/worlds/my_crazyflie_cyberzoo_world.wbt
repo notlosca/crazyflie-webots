@@ -191,8 +191,8 @@ DEF GATE Solid {
   name "imav2022-gate(1)"
 }
 DEF CRAZYFLIE Robot {
-  translation 0 -1.05 0.015
-  rotation 0 0 1 1.5708
+  translation -2.312811776111532e-19 -1.0500000000033747 0.015000917819303898
+  rotation -3.4552296247734963e-15 3.3837317777999434e-15 1 1.5708000000000002
   children [
     DEF Multiranger Transform {
       translation 0 0 0.02
@@ -9524,6 +9524,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0 1 0
+      ]
     }
     Solid {
       translation -1.12 12.09 -9.53195e-07
@@ -10350,6 +10353,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        1 0 1
+      ]
     }
     Solid {
       translation -1.12 10.96 -8.64104e-07
@@ -11176,6 +11182,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0 0.5 1
+      ]
     }
     Solid {
       translation -1.12 10 -7.88423e-07
@@ -12002,6 +12011,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0.9065207747741162 0.5024801177210232 0.008259660037883254
+      ]
     }
     Solid {
       translation -1.12 9.04 -7.12747e-07
@@ -12828,6 +12840,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0.3567527974685373 0.03680647306740026 0.6263518954645247
+      ]
     }
     Solid {
       translation -1.12 8.08 -6.37069e-07
@@ -13654,6 +13669,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0.33029140517011724 0.9892907601237497 0.656555761859386
+      ]
     }
     Solid {
       translation -1.12 7.1 -5.59802e-07
@@ -14480,6 +14498,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0.8290333515686303 0.5098066460287113 0.7341624558681898
+      ]
     }
     Solid {
       translation -1.12 6.03 -4.75445e-07
@@ -15306,6 +15327,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0.0788721438341875 0.49521742169284966 0.30185697034858894
+      ]
     }
     Solid {
       translation -3.08 0 0
@@ -16133,6 +16157,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0.9580478637460698 0.9926100843886646 0.2668049897097904
+      ]
     }
     Solid {
       translation 0.859678 -2.5904 0.01
@@ -16199,6 +16226,9 @@ DEF Objects Group {
         }
       ]
       name "Mat - Traffic"
+      recognitionColors [
+        0.9469055963711608 0.01610365481349696 0.2374332253179584
+      ]
     }
     Solid {
       translation 1.59 8.04 -7.90433e-07
@@ -17158,6 +17188,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0.4741002417153083 0.21009405568122097 0.11604429812322725
+      ]
     }
     Solid {
       translation 1.59 7.05 -6.98428e-07
@@ -18117,6 +18150,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0.5347090444091542 0.7837869423691247 0.15923930349135917
+      ]
     }
     Solid {
       translation 1.59 5.99 -5.99922e-07
@@ -19076,6 +19112,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0 0 1
+      ]
     }
     Solid {
       translation -2.57 -3.07 2.42056e-07
@@ -20035,6 +20074,9 @@ DEF Objects Group {
           }
         ]
       }
+      recognitionColors [
+        0.5978415067794337 0.7892868825712169 0.9838527866723552
+      ]
     }
     Solid {
       translation 4.94 1.81456e-05 -2.21368e-13
@@ -20199,6 +20241,9 @@ DEF Objects Group {
         }
       ]
       name "Curtain - Striped"
+      recognitionColors [
+        0 1 1
+      ]
     }
     Solid {
       translation -2.31 1.98 -1.56114e-07
@@ -20252,6 +20297,9 @@ DEF Objects Group {
         }
       ]
       name "Pole - Orange"
+      recognitionColors [
+        0.5281723642656108 0.29938943910376314 0.9947429126637019
+      ]
     }
     Solid {
       translation 3.38 7.24 -5.70539e-07
@@ -20617,6 +20665,9 @@ DEF Objects Group {
         }
       ]
       name "Panel - Metal 4"
+      recognitionColors [
+        0.37185458968248253 0.566410034534775 0.649415643777105
+      ]
     }
     Solid {
       translation 3.38 6.57 -5.17743e-07
@@ -20982,6 +21033,9 @@ DEF Objects Group {
         }
       ]
       name "Panel - Metal 3"
+      recognitionColors [
+        0.7423569958095837 0.1980743678930621 0.5345753022394523
+      ]
     }
     Solid {
       translation 3.38 5.98 -4.71251e-07
@@ -21347,6 +21401,9 @@ DEF Objects Group {
         }
       ]
       name "Panel - Metal 2"
+      recognitionColors [
+        0.02579011035126788 0.8343013989445262 0.3425406360166342
+      ]
     }
     Solid {
       translation 1.61 0 0
@@ -21712,6 +21769,9 @@ DEF Objects Group {
         }
       ]
       name "Panel - Metal 1"
+      recognitionColors [
+        0.03907013104885049 0.2982650566569638 0.6175915899408702
+      ]
     }
     Solid {
       translation 0 0 0.01
@@ -21778,6 +21838,9 @@ DEF Objects Group {
         }
       ]
       name "Mat - Airport"
+      recognitionColors [
+        0.841807240576569 0.8381933865128567 0.6578117290201531
+      ]
     }
     Solid {
       translation 0 1.72 -1.35618e-07
@@ -21825,6 +21888,9 @@ DEF Objects Group {
         }
       ]
       name "imav2022-gate"
+      recognitionColors [
+        0.009555951540487828 0.7489141674824689 0.7781347435254844
+      ]
     }
   ]
 }

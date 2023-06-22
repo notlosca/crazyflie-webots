@@ -136,6 +136,8 @@ DEF GATE Solid {
     Robot {
       translation 0 -0.05 1
       children [
+        InertialUnit {
+        }
         GPS {
           children [
             Solid {
@@ -167,7 +169,7 @@ DEF GATE Solid {
             baseColor 1 0.8 0.6
             baseColorMap ImageTexture {
               url [
-                "/home/lorenzo/crazyflie-simulation/webots/worlds/textures/imav2022-gate/GateTex_orange.png"
+                "textures/imav2022-gate/GateTex_orange.png"
               ]
             }
             roughness 1
@@ -443,27 +445,11 @@ DEF CRAZYFLIE Robot {
     height 0.03
     radius 0.05
   }
-  controller "ibvs_gt_no_phys"
+  controller "collect_dataset_controller"
   supervisor TRUE
 }
 Robot {
   name "supervisor"
   controller ""
   supervisor TRUE
-}
-Solid {
-  translation 0 -2.02 0.5
-  rotation 0 1 0 0
-  children [
-    Shape {
-      appearance PBRAppearance {
-        baseColor 1 0.2 0.2
-        roughness 1
-        metalness 0
-      }
-      geometry Box {
-        size 0.1 0.1 1
-      }
-    }
-  ]
 }
