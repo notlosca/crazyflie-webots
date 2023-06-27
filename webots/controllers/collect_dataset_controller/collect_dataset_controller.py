@@ -93,7 +93,7 @@ z_limits = (0.05, 1.5)
 ########### ------------------ SAVING THINGS -------------------- ###########
 
 # Set to True if you want to collect data
-collect_data = True
+collect_data = False
 
 # we store all the parameters and relevant experiment info in a dict
 exp_dict = {"objects":{}, "env_objects":{}, "settings":{}}
@@ -168,7 +168,7 @@ if __name__ == '__main__':
     crazyflie_node = robot.getFromDef("CRAZYFLIE")
     translation_drone = crazyflie_node.getField('translation')
     rotation_drone = crazyflie_node.getField('rotation')
-    camera_node = crazyflie_node.getField('children').getMFNode(1)
+    camera_node = crazyflie_node.getField('children').getMFNode(2) # Be careful of the index !
     camera_drone_tr = camera_node.getField('translation').getSFVec3f()
 
                     ##### ------ CAMERA SETTINGS ------ #####
@@ -295,7 +295,7 @@ if __name__ == '__main__':
     
     exp_dict['settings']['drone'] = {'starting_position': crazyflie_node.getField('translation').getSFVec3f(),
                         'starting_rotation': crazyflie_node.getField('rotation').getSFRotation(),
-                        'camera_drone_tr': camera_node.getField('translation').getSFVec3f()}
+                        'camera_drone_tr': camera_drone_tr}
     
     exp_dict['settings']['gate'] = {'starting_corners':{'tl':tl, 'bl':bl, 'br':br, 'tr':tr},
                                     'starting_position': gate_node.getField('translation').getSFVec3f(),
@@ -531,11 +531,15 @@ if __name__ == '__main__':
             if collect_data:
                 # Save the image
                 cv2.imwrite(f"{gt_imgs_folder}"+f'/img_{frame_n}.png', cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+                
+                # To be coherent with the drone orientation, transform the axangle orientation into roll, pitch and yaw
+                gate_axangle = gate_node.getField('rotation').getSFRotation()[:-1], gate_node.getField('rotation').getSFRotation()[-1]
+                gate_rpy = transforms3d.euler.axangle2euler(gate_axangle[0], gate_axangle[-1])
 
                 # Save the data
                 sample["sample_n"] = frame_n
                 sample['gate'] = {'position':gate_node.getField('translation').getSFVec3f(), 
-                                'orientation':gate_node.getField('rotation').getSFRotation()}
+                                'orientation':list(gate_rpy)}
                 sample["drone"] = {'position':gps.getValues(),
                                 'orientation': imu.getRollPitchYaw(),}
                 sample['GT_3D_space'] = P
