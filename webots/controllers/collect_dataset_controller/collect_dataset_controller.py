@@ -536,6 +536,8 @@ if __name__ == '__main__':
                 # Save the data
                 sample["sample_n"] = frame_n
                 sample['image'] = cam_img
+                sample['h'], sample['w'] = img_size
+                sample['c'] = 1 # Gray-scale images
                 sample['gate'] = {'position':gate_node.getField('translation').getSFVec3f(), 
                                 'orientation':list(gate_rpy)}
                 sample["drone"] = {'position':gps.getValues(),
