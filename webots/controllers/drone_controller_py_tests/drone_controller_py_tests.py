@@ -46,8 +46,8 @@ collect_data = False
 
 if collect_data:
         
-    parent_folder = '../../datasets/EXP-6-IBVS_SMOOTH_START'
-    folder = parent_folder +'/tests_elia/'+ '04_corner_det_test_no_filter_allsmooth_1percsmooth'
+    # parent_folder = '../../datasets/EXP-6-IBVS_SMOOTH_START'
+    # folder = parent_folder +'/tests_elia/'+ '04_corner_det_test_no_filter_allsmooth_1percsmooth'
 
     imgs_folder = f'{folder}/imgs/'
     imgs_ibvs_folder = f'{folder}/imgs_ibvs/'
@@ -446,207 +446,34 @@ if __name__ == '__main__':
             GT_ibvs_v_x, GT_ibvs_v_y, GT_ibvs_v_z, GT_ibvs_w_x, GT_ibvs_w_y, GT_ibvs_w_z = v_drone
 
             ########### ------------------ GT VISUAL SERVOING ------------------ ##########
-            
-            ########### ------------------ DETECTION VISUAL SERVOING ------------------ ###########
 
-            current_p_detected = corner.detect_corners(img, return_drawing=False)
+            # Show image
+            for id, col in enumerate(colors):
+                tl = pd[:,0] # 0
+                bl = pd[:,1] # 1
+                br = pd[:,2] # 2
+                tr = pd[:,3] # 3 
+                x, y = pd[:,id] # Desired
+                image = cv2.putText(image, text=str(id), org = (int(x),int(y)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.5, color = (255,255,255), thickness = 1)
+                image = cv2.circle(image, (int(x),int(y)), radius=2, color=(255, 255, 255), thickness=1)
+                image = cv2.line(image, (int(tl[0]), int(tl[1])), (int(tr[0]), int(tr[1])), color=(255, 255, 255), thickness=1) # top-left, top-right
+                image = cv2.line(image, (int(tr[0]), int(tr[1])), (int(br[0]), int(br[1])), color=(255, 255, 255), thickness=1) # top-right, bottom-right
+                image = cv2.line(image, (int(br[0]), int(br[1])), (int(bl[0]), int(bl[1])), color=(255, 255, 255), thickness=1) # bottom-left, top-right
+                image = cv2.line(image, (int(bl[0]), int(bl[1])), (int(tl[0]), int(tl[1])), color=(255, 255, 255), thickness=1) # bottom-left, top-left
+                x, y = GT_p_detected[:,id] # Detected
+                image = cv2.circle(image, (int(x),int(y)), radius=2, color=(255, 255, 255), thickness=-1)
+                image = cv2.putText(image, text=str(id), org = (int(x),int(y)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.5, color = (255,255,255), thickness = 1)
+                if collect_data:
+                    # Save the image
+                    cv2.imwrite(imgs_ibvs_folder+f'/img_{it_idx}.png', cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
 
-            if vs_counter == 0:
-                detection[0] = current_p_detected
-                p_detected = current_p_detected
-                detection[0] = p_detected
-            elif vs_counter == 1:
-                detection[1] = detection[0]
-                detection[0] = current_p_detected
-                p_detected = corner.weigh_detection(detection, order=1, alpha=filter['alpha'])
-                detection[0] = p_detected
-            else:
-                detection[2] = detection[1]
-                detection[1] = detection[0]
-                detection[0] = current_p_detected
-                p_detected = corner.weigh_detection(detection, order=filter['order'], alpha=filter['alpha'])
-                detection[0] = p_detected
+            cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+            cv2.waitKey(timestep)
 
-            # vs_counter += 1 # add it later since I use this counter
-
-            detections.append(p_detected)
-
-            # image-plane error
-            try:
-                
-                if smooth_start['isEnabled']:
-
-                    e_temp = pd - p_detected
-
-                    # Smooth start
-                    if vs_counter == 0:
-                        first_error = e_temp                
-                    e = e_temp - first_error*np.exp(-mu*vs_counter)
-                
-                else:
-                
-                    e = pd - p_detected
-                
-                err = np.linalg.norm(e)
-
-                print(f"Error: {err:.2f}")
-
-                if err <= 50 and track_error is False and vs_counter >= 500:
-                    track_error = True
-                    offset = it_idx
-                    print("Collect errors...")
-                
-                if track_error and median_err > 50:
-                    idx = it_idx - offset
-                    if idx >= len(errors):
-                        idx = len(errors)
-                    print(f"Collecting errors: {idx}/{errors.shape[-1]}")                    
-                    if idx == len(errors):
-                        median_err = np.median(errors)
-                        print("Median error:", median_err)
-                        if median_err <= 50:
-                            visual_servoing = False
-                            cross_the_gate = True
-                            
-                            # Save the current altitude in order to pass the gate
-                            # tasks['cross_the_gate']['setpoints']['position.z'] = z_global 
-                            # Now set as velocity.z = 0.0
-
-                            info['ending_step'] = it_idx
-                            
-                            print("Crossing the gate...")
-                        else:
-                            # Shift errors
-                            temp = errors[1:]
-                            errors[:-1] = temp
-                            errors[-1] = err
-                    else:
-                        errors[idx] = err
-
-                if err <= thresh and vs_counter >= 500:
-                    
-                    visual_servoing = False
-                    cross_the_gate = True
-                    
-                    # Save the current altitude in order to pass the gate
-                    # tasks['cross_the_gate']['setpoints']['position.z'] = z_global 
-                    # Now set as velocity.z = 0.0
-
-                    info['ending_step'] = it_idx
-                    
-                    print("Crossing the gate...")
-                
-            except Exception as e:
-                
-                print('Detection', e)
-                            
-            try:
-                # stacked image Jacobian
-                J = cam.visjac_p(p_detected, Z)
-
-                # Condition number of J
-                J_det_cond = np.linalg.cond(J)
-                print('Condition number of J_detection', J_det_cond)
-
-                v_camera = lmda * np.linalg.pinv(J) @ e.T.flatten()
-                # Twist velocity from camera frame to drone frame
-                twist_drone_camera = geometry.velocity_twist_matrix(rotation_matrix_drone_camera, dc_tr)
-                v_drone = twist_drone_camera@v_camera
-
-                # Show image
-                for id, col in enumerate(colors):
-                    tl = pd[:,0] # 0
-                    bl = pd[:,1] # 1
-                    br = pd[:,2] # 2
-                    tr = pd[:,3] # 3 
-                    x, y = pd[:,id] # Desired
-                    image = cv2.putText(image, text=str(id), org = (int(x),int(y)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.5, color = (255,255,255), thickness = 1)
-                    image = cv2.circle(image, (int(x),int(y)), radius=2, color=(255, 255, 255), thickness=1)
-                    image = cv2.line(image, (int(tl[0]), int(tl[1])), (int(tr[0]), int(tr[1])), color=(255, 255, 255), thickness=1) # top-left, top-right
-                    image = cv2.line(image, (int(tr[0]), int(tr[1])), (int(br[0]), int(br[1])), color=(255, 255, 255), thickness=1) # top-right, bottom-right
-                    image = cv2.line(image, (int(br[0]), int(br[1])), (int(bl[0]), int(bl[1])), color=(255, 255, 255), thickness=1) # bottom-left, top-right
-                    image = cv2.line(image, (int(bl[0]), int(bl[1])), (int(tl[0]), int(tl[1])), color=(255, 255, 255), thickness=1) # bottom-left, top-left
-                    x, y = p_detected[:,id] # Detected
-                    image = cv2.circle(image, (int(x),int(y)), radius=2, color=(255, 255, 255), thickness=-1)
-                    image = cv2.putText(image, text=str(id), org = (int(x),int(y)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.5, color = (255,255,255), thickness = 1)
-                    if collect_data:
-                        # Save the image
-                        cv2.imwrite(imgs_ibvs_folder+f'/img_{it_idx}.png', cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
-
-                cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
-                cv2.waitKey(timestep)
-            
-            except Exception as e:
-
-                print(e)    
-                
-                info['ending_step'] = it_idx
-                
-                ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z = np.full(shape=(6,), fill_value=np.nan)
-                
-                ########### ------------------ SAVING THINGS -------------------- ########### 
-
-                sample = {}
-                sample['ibvs_velocities_body_frame'] = [ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z]
-                sample['GT_ibvs_velocities_body_frame'] = [GT_ibvs_v_x, GT_ibvs_v_y, GT_ibvs_v_z, GT_ibvs_w_x, GT_ibvs_w_y, GT_ibvs_w_z]
-                sample['target_points'] = pd
-                sample['detected_points'] = p_detected
-                sample['GT_detected_points'] = GT_p_detected
-                sample['ibvs_error'] = err
-                sample['GT_ibvs_error'] = GT_err
-                sample['jacobian_detection'] = J
-                sample['condition_number_J_detection'] = J_det_cond
-                sample['jacobian_GT'] = J_GT
-                sample['condition_number_J_GT'] = J_GT_cond
-                data['IBVS'] = sample
-            
-                ########### ------------------ SAVING THINGS -------------------- ###########
-
-                break
-                
-            ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z = v_drone
-            if smooth_velocity['flag']:
-                if vs_counter == 0:
-                    ibvs_v_xs[0] = ibvs_v_x
-                    forward_desired = ibvs_v_x
-                    ibvs_v_xs[0] = forward_desired
-
-                    ibvs_v_ys[0] = ibvs_v_y
-                    sideways_desired = ibvs_v_y
-                    ibvs_v_ys[0] = sideways_desired
-                    
-                    ibvs_v_zs[0] = ibvs_v_z
-                    height_diff_desired = ibvs_v_z
-                    ibvs_v_zs[0] = height_diff_desired
-
-                    ibvs_w_zs[0] = ibvs_w_z
-                    yaw_desired = ibvs_w_z
-                    ibvs_w_zs[0] = yaw_desired
-                else:
-                    ibvs_v_xs[1] = ibvs_v_xs[0]
-                    ibvs_v_xs[0] = ibvs_v_x
-                    forward_desired = flt.exp_smooth(ibvs_v_xs, alpha=smooth_velocity['alpha'])
-                    ibvs_v_xs[0] = forward_desired
-
-                    ibvs_v_ys[1] = ibvs_v_ys[0]
-                    ibvs_v_ys[0] = ibvs_v_y
-                    sideways_desired = flt.exp_smooth(ibvs_v_ys, alpha=smooth_velocity['alpha'])
-                    ibvs_v_ys[0] = sideways_desired
-
-                    ibvs_v_zs[1] = ibvs_v_zs[0]
-                    ibvs_v_zs[0] = ibvs_v_z
-                    height_diff_desired = flt.exp_smooth(ibvs_v_zs, alpha=smooth_velocity['alpha'])
-                    ibvs_v_zs[0] = height_diff_desired
-
-                    ibvs_w_zs[1] = ibvs_w_zs[0]
-                    ibvs_w_zs[0] = ibvs_w_z
-                    yaw_desired = flt.exp_smooth(ibvs_w_zs, alpha=smooth_velocity['alpha'])
-                    ibvs_w_zs[0] = yaw_desired
-            else:            
-                forward_desired = ibvs_v_x
-                sideways_desired = ibvs_v_y
-                yaw_desired = ibvs_w_z
-                height_diff_desired = ibvs_v_z
+            forward_desired = GT_ibvs_v_x
+            sideways_desired = GT_ibvs_v_y
+            yaw_desired = GT_ibvs_w_z
+            height_diff_desired = GT_ibvs_v_z
             
             # New height. Integrate v_z to get the next position.
             height_desired += height_diff_desired * dt 
@@ -660,25 +487,11 @@ if __name__ == '__main__':
                                     yaw_desired, height_desired,
                                     roll, pitch, yaw_rate,
                                     altitude, v_x, v_y, gains)
-            
-            ########### ------------------ SAVING THINGS -------------------- ########### 
 
-            sample = {}
-            sample['ibvs_velocities_body_frame'] = [ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z]
-            sample['GT_ibvs_velocities_body_frame'] = [GT_ibvs_v_x, GT_ibvs_v_y, GT_ibvs_v_z, GT_ibvs_w_x, GT_ibvs_w_y, GT_ibvs_w_z]
-            sample['target_points'] = pd
-            sample['detected_points'] = p_detected
-            sample['GT_detected_points'] = GT_p_detected
-            sample['ibvs_error'] = err
-            sample['GT_ibvs_error'] = GT_err
-            sample['jacobian_detection'] = J
-            sample['condition_number_J_detection'] = J_det_cond
-            sample['jacobian_GT'] = J_GT
-            sample['condition_number_J_GT'] = J_GT_cond
-            data['IBVS'] = sample
-            
-            ########### ------------------ SAVING THINGS -------------------- ###########
-                
+            if GT_err < thresh:
+                cross_the_gate = True
+                visual_servoing = False
+                print("Crossing the gate...")
 
         elif cross_the_gate:
             

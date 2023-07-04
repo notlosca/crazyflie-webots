@@ -93,7 +93,7 @@ z_limits = (0.05, 1.5)
 ########### ------------------ SAVING THINGS -------------------- ###########
 
 # Set to True if you want to collect data
-collect_data = False
+collect_data = True
 
 # we store all the parameters and relevant experiment info in a dict
 exp_dict = {"objects":{}, "env_objects":{}, "settings":{}}
@@ -111,16 +111,16 @@ else:
 
 exp_folder = f"../../datasets/simulation_datasets/{exp_name}"
 imgs_folder = f"{exp_folder}/imgs/"
-gt_imgs_folder = f'{imgs_folder}' + 'ground_truth'
+# gt_imgs_folder = f'{imgs_folder}' + 'ground_truth'
 if collect_data:
 
     try:
-        os.makedirs(gt_imgs_folder)
+        os.makedirs(imgs_folder)
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise  # This was not a "directory exist" error..
         else:
-            print(f"Overwriting folder {gt_imgs_folder}")
+            print(f"Overwriting folder {imgs_folder}")
 
 exp_dict["settings"] = {
     "name": exp_name,
@@ -511,26 +511,23 @@ if __name__ == '__main__':
 
         # Check whether if the ground truths are present in the image. If yes save everything
         if np.isnan(GT_p_detected).sum() == 0 and np.min(GT_p_detected) >= 0 and np.max(GT_p_detected) < img_size[0]:
-            gt_img = np.zeros_like(image)
-            # Show image
-            for id, col in enumerate(colors):
-                v, u = GT_p_detected[:,id] # Ground truth into image space
-                image = cv2.circle(image, (int(v),int(u)), radius=int(np.round(0.05*320,0)), color=(255, 255, 255), thickness=-1)
-                # gt_img = cv2.circle(gt_img, (int(v),int(u)), radius=int(np.round(0.05*320,0)), color=(255, 255, 255), thickness=-1)
-                gt_img = cv2.circle(gt_img, (int(v),int(u)), radius=10, color=(255, 255, 255), thickness=-1)
-                # gt_img = cv2.blur(gt_img, (7,7))
-                gt_img = scipy.ndimage.gaussian_filter(gt_img, sigma=1)
-                # image = cv2.putText(image, text=str(id), org = (int(x),int(y)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.5, color = (255,255,255), thickness = 1)
+            # gt_img = np.zeros_like(image)
+            # # Show image
+            # for id, col in enumerate(colors):
+            #     v, u = GT_p_detected[:,id] # Ground truth into image space
+            #     image = cv2.circle(image, (int(v),int(u)), radius=int(np.round(0.05*320,0)), color=(255, 255, 255), thickness=-1)
+            #     # gt_img = cv2.circle(gt_img, (int(v),int(u)), radius=int(np.round(0.05*320,0)), color=(255, 255, 255), thickness=-1)
+            #     gt_img = cv2.circle(gt_img, (int(v),int(u)), radius=10, color=(255, 255, 255), thickness=-1)
+            #     # gt_img = cv2.blur(gt_img, (7,7))
+            #     gt_img = scipy.ndimage.gaussian_filter(gt_img, sigma=1)
+            #     # image = cv2.putText(image, text=str(id), org = (int(x),int(y)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.5, color = (255,255,255), thickness = 1)
             
-            # Resize for the ground truth
-            image = cv2.resize(gt_img, (20,20))
-                    
-            # Increase the counter of the correct frames
-            frame_n += 1
+            # # Resize for the ground truth
+            # image = cv2.resize(gt_img, (20,20))
         
             if collect_data:
-                # Save the image
-                cv2.imwrite(f"{gt_imgs_folder}"+f'/img_{frame_n}.png', cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+                # # Save the image
+                # cv2.imwrite(f"{gt_imgs_folder}"+f'/img_{frame_n}.png', cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
                 
                 # To be coherent with the drone orientation, transform the axangle orientation into roll, pitch and yaw
                 gate_axangle = gate_node.getField('rotation').getSFRotation()[:-1], gate_node.getField('rotation').getSFRotation()[-1]
@@ -538,6 +535,7 @@ if __name__ == '__main__':
 
                 # Save the data
                 sample["sample_n"] = frame_n
+                sample['cam_img'] = cam_img
                 sample['gate'] = {'position':gate_node.getField('translation').getSFVec3f(), 
                                 'orientation':list(gate_rpy)}
                 sample["drone"] = {'position':gps.getValues(),
@@ -581,7 +579,10 @@ if __name__ == '__main__':
 
                 path = f"{imgs_folder}" + f"range_full_{frame_n}.png"
                 np.save(path, range_image_full)
-
+            
+            # Increase the counter of the correct frames
+            frame_n += 1
+        
         ########### ------------------ SAVING THINGS -------------------- ########### 
 
 
