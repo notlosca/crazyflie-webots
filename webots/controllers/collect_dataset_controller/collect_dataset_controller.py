@@ -535,7 +535,7 @@ if __name__ == '__main__':
 
                 # Save the data
                 sample["sample_n"] = frame_n
-                sample['cam_img'] = cam_img
+                sample['image'] = cam_img
                 sample['gate'] = {'position':gate_node.getField('translation').getSFVec3f(), 
                                 'orientation':list(gate_rpy)}
                 sample["drone"] = {'position':gps.getValues(),
