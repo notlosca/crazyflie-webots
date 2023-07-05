@@ -46,7 +46,7 @@ if rotate_gate:
 
 change_gate_color = True
 if change_gate_color:
-    change_gate_color_every = 100
+    change_gate_color_every = 2000
 
 # change_gate_height = False
 # if change_gate_height:
@@ -58,12 +58,12 @@ if change_gate_color:
 
 random_background = True
 if random_background:
-    random_background_every = 100
+    random_background_every = 1000
 
 # This can be merged with random_background
 random_floor = True
 if random_floor:
-    random_floor_every = 100
+    random_floor_every = 1500
 
 random_images = True
 # img_path = '~/home/losca/Documents/Thesis/crazyflie-webots/webots/worlds/textures/textured_panel_3m/' # Not working
@@ -71,7 +71,7 @@ img_path = '../../worlds/textures/textured_panel_3m/'
 available_imgs = os.listdir(img_path)
 imgs = [i for i in available_imgs if i!='.DS_Store']
 if random_images:
-    random_images_every = 100
+    random_images_every = 800
 
                 ##### ------ LIMITS ------ #####
 
@@ -93,13 +93,13 @@ z_limits = (0.05, 1.5)
 ########### ------------------ SAVING THINGS -------------------- ###########
 
 # Set to True if you want to collect data
-collect_data = True
+collect_data = False
 
 # we store all the parameters and relevant experiment info in a dict
 exp_dict = {"objects":{}, "env_objects":{}, "settings":{}}
 
 # total number of samples
-n_samples = 500
+n_samples = 25000
 exp_dict['settings']['n_samples'] = n_samples
 
 # name of the experiment
@@ -330,7 +330,7 @@ if __name__ == '__main__':
         ########### ------------------ FLAGS ------------------ ###########
 
         if rotate_gate:
-            if frame_n % rotate_gate_every == 0 and frame_n != 0:
+            if it_idx % rotate_gate_every == 0 and frame_n != 0:
                 
                 # Set the new orientation of the gate
                 gate_yaw = np.random.uniform(0, 2*np.pi)
@@ -340,7 +340,7 @@ if __name__ == '__main__':
                 gate_node.getField('rotation').setSFRotation(ax_angle)
                 
         if change_gate_color:
-            if frame_n % change_gate_color_every == 0 and frame_n != 0:
+            if it_idx % change_gate_color_every == 0 and frame_n != 0:
                 # Change RGB color
                 r_rand = np.random.uniform(0,1, size=1)[0]
                 g_rand = np.random.uniform(0,1, size=1)[0]
@@ -353,7 +353,7 @@ if __name__ == '__main__':
                 gate_node.getField('children').getMFNode(5).getField('appearance').getSFNode().getField('baseColor').setSFColor([r_rand, g_rand, b_rand])
 
         if random_floor:
-            if frame_n % random_floor_every == 0 and frame_n != 0:
+            if it_idx % random_floor_every == 0 and frame_n != 0:
 
                 original_axangle = floor_panel['starting_rotation']
                 current_rot_mat = transforms3d.axangles.axangle2mat(original_axangle[:-1], angle=original_axangle[-1])
@@ -368,7 +368,7 @@ if __name__ == '__main__':
                 floor_panel['solid'].getField('rotation').setSFRotation(ax_angle)
 
         if random_background:
-            if frame_n % random_background_every == 0 and frame_n != 0:
+            if it_idx % random_background_every == 0 and frame_n != 0:
 
                 # Clean the space radius of the drone
                 # TODO: right now all the items near the gate are not there
@@ -410,7 +410,7 @@ if __name__ == '__main__':
                         obs[0].getField('scale').setSFVec3f(3*[scale])
         
         if random_images:
-            if frame_n % random_images_every == 0 and frame_n != 0:
+            if it_idx % random_images_every == 0 and frame_n != 0:
                 for obs in obstacles:
                     if 'Panel - Textured' in obs[0].getField('name').getSFString():
                         solid = obs[0]
@@ -426,7 +426,7 @@ if __name__ == '__main__':
                         shape1.getField('appearance').getSFNode().getField('baseColorMap').getSFNode().getField('url').setMFString(0, f'textures/textured_panel_3m/{imgs[random_img_id]}')
                     
         # if change_gate_height:
-        #     if frame_n % change_gate_height_every == 0 and frame_n != 0:
+        #     if it_idx % change_gate_height_every == 0 and frame_n != 0:
         #         height_lim = (-0.5, 0.5)
         #         random_height = np.random.uniform(*height_lim)
         #         gate_node = robot.getFromDef("GATE").getField('children').getMFNode(0)
@@ -434,7 +434,7 @@ if __name__ == '__main__':
         #         gate_node.getField('translation').setSFVec3f([translation_gate[0], translation_gate[1], random_height])
         #         
         # if change_scale_gate:
-        #     if frame_n % change_scale_gate_every == 0 and frame_n != 0:
+        #     if it_idx % change_scale_gate_every == 0 and frame_n != 0:
         #         gate_scale_limits = (0.5, 2)
         #         random_scale = np.random.uniform(*gate_scale_limits)
         #         gate_node = robot.getFromDef("GATE").getField('children').getMFNode(0)
@@ -631,7 +631,8 @@ if __name__ == '__main__':
         
         it_idx += 1
 
-        print(frame_n, it_idx)
+        if frame_n % 1000 == 0:
+            print(f"{frame_n} good frames.")
         # print(f'Percentage of correct images: {100*(frame_n/it_idx):.2f}')
     
 
