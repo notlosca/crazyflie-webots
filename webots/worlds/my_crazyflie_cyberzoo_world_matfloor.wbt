@@ -3,10 +3,49 @@ WorldInfo {
 }
 Viewpoint {
   fieldOfView 0.9
-  orientation 0.3637745995286558 -0.37747454678066367 -0.851575602791965 4.632103191887603
-  position 0.15759172769337074 -3.9202554404291625 4.905138947793509
+  orientation -0.4127814742669428 0.4253516824801788 0.8054113239291403 1.7182802602611285
+  position -0.8583596173723183 -3.759533810109397 6.371350723554245
   followType "Mounted Shot"
   followSmoothness 0.1
+}
+DEF SpotL1 Solid {
+  translation 0.774901 -1.31562 2
+  rotation 0.8191605706936212 0.2194948849669313 -0.5299037222876 -0.9363253071795858
+  children [
+    SpotLight {
+      attenuation 0 0 1
+      beamWidth 0.7
+      direction 0 1 0
+      castShadows TRUE
+    }
+  ]
+  name "light-1"
+}
+DEF SpotL2 Solid {
+  translation 0.673128 0.694456 2.257
+  rotation 0.10200802511269573 0.38068709371889264 -0.919060226257491 -2.6586753071795863
+  children [
+    SpotLight {
+      attenuation 0 0 1
+      beamWidth 0.7
+      direction 0 1 0
+      castShadows TRUE
+    }
+  ]
+  name "light-2"
+}
+DEF SpotL3 Solid {
+  translation -1.3551 -1.3849 1.86144
+  rotation 0.6947490600311846 -0.18615701608527 0.6947440600307527 -0.7361953071795861
+  children [
+    SpotLight {
+      attenuation 0 0 1
+      beamWidth 0.7
+      direction 0 1 0
+      castShadows TRUE
+    }
+  ]
+  name "light-3"
 }
 TexturedBackground {
   texture "factory"
@@ -191,7 +230,7 @@ DEF GATE Solid {
   name "imav2022-gate(1)"
 }
 DEF CRAZYFLIE Robot {
-  translation -6.828728955926236e-08 -1.0299999999974105 0.03999616223638317
+  translation -6.82873e-08 -1.03 1
   rotation 6.9057761207939795e-12 6.114304005538113e-15 1 1.5708000000000004
   children [
     RangeFinder {
@@ -450,7 +489,7 @@ DEF CRAZYFLIE Robot {
     density -1
     mass 0.05
   }
-  controller "collect_dataset_controller"
+  controller "collect_dataset_train"
   supervisor TRUE
 }
 DEF Cyberzoo Transform {
@@ -15427,7 +15466,7 @@ DEF Objects Group {
                   appearance PBRAppearance {
                     baseColorMap ImageTexture {
                       url [
-                        "textures/textured_panel_3m/wall_window.png"
+                        "textures/textured_panel_3m/flat/white_flat.png"
                       ]
                     }
                     roughness 1
@@ -16162,7 +16201,7 @@ DEF Objects Group {
           name "$ColladaAutoName$_0"
         }
       ]
-      name "Panel - Textured Starting Wall 1"
+      name "Wall - 1"
       boundingObject Transform {
         translation 0 0 45
         children [
@@ -16176,7 +16215,7 @@ DEF Objects Group {
       ]
     }
     Solid {
-      translation -0.0300249 4.73001 -5.40861e-07
+      translation -0.0300235 4.50001 -5.14563e-07
       rotation 0.02154559712685861 2.747989633550989e-08 -0.9997678666792839 -5.307179586466759e-06
       scale 0.08 0.08 0.08
       children [
@@ -16257,7 +16296,7 @@ DEF Objects Group {
                   appearance PBRAppearance {
                     baseColorMap ImageTexture {
                       url [
-                        "textures/textured_panel_3m/wall_tv.png"
+                        "textures/textured_panel_3m/flat/white_flat.png"
                       ]
                     }
                     roughness 1
@@ -16992,7 +17031,7 @@ DEF Objects Group {
           name "$ColladaAutoName$_0"
         }
       ]
-      name "Panel - Textured Starting Wall 2"
+      name "Wall - 2"
       boundingObject Transform {
         translation 0 0 45
         children [
@@ -17087,7 +17126,7 @@ DEF Objects Group {
                   appearance PBRAppearance {
                     baseColorMap ImageTexture {
                       url [
-                        "textures/textured_panel_3m/wall_desks.png"
+                        "textures/textured_panel_3m/flat/white_flat.png"
                       ]
                     }
                     roughness 1
@@ -17822,7 +17861,7 @@ DEF Objects Group {
           name "$ColladaAutoName$_0"
         }
       ]
-      name "Panel - Textured Starting Wall 3"
+      name "Wall - 3"
       boundingObject Transform {
         translation 0 0 45
         children [
@@ -17917,7 +17956,7 @@ DEF Objects Group {
                   appearance PBRAppearance {
                     baseColorMap ImageTexture {
                       url [
-                        "textures/textured_panel_3m/wall_board.png"
+                        "textures/textured_panel_3m/flat/white_flat.png"
                       ]
                     }
                     roughness 1
@@ -18652,7 +18691,7 @@ DEF Objects Group {
           name "$ColladaAutoName$_0"
         }
       ]
-      name "Panel - Textured Starting Wall 4"
+      name "Wall - 4"
       boundingObject Transform {
         translation 0 0 45
         children [
@@ -18745,9 +18784,10 @@ DEF Objects Group {
                 }
                 Shape {
                   appearance PBRAppearance {
+                    baseColor 0.8 0.7 0.3
                     baseColorMap ImageTexture {
                       url [
-                        "textures/textured_panel_3m/floor_0.png"
+                        "textures/textured_panel_3m/flat/white_flat.png"
                       ]
                     }
                     roughness 1

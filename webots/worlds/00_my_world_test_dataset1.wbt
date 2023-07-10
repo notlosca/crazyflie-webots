@@ -2,9 +2,11 @@
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.11367411038550125 0.06309589864228429 0.9915125335579915 2.1353960850818634
-  position 3.0999821260569496 -6.036492464972338 1.7680461024509875
-  follow "MY_Crazyflie"
+  fieldOfView 0.9
+  orientation -0.10270714079033434 0.08950380531201617 0.9906766940154305 1.555584380203768
+  position 0.11168239022176818 -5.014018965757754 2.133344946600701
+  followType "Mounted Shot"
+  followSmoothness 0.1
 }
 Floor {
   size 100 100
@@ -22,151 +24,151 @@ TexturedBackground {
   ]
 }
 TexturedBackgroundLight {
-  texture "stadium"
+  texture "factory"
   luminosity 0
 }
 DEF GATE Solid {
   rotation 0 1 0 0
   children [
-    Robot {
-      translation 0.2 -0.05 0.8
-      children [
-        GPS {
-          children [
-            Solid {
-              scale 0.2 0.2 0.2
-              children [
-                Shape {
-                  appearance PBRAppearance {
-                    baseColor 0 1 0
-                    transparency 1
-                    roughness 1
-                  }
-                  geometry Sphere {
-                    radius 0.1
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-      name "sensor_br"
-      controller "gate_corner_position_controller"
-    }
-    Robot {
-      translation -0.2 -0.05 0.8
-      children [
-        GPS {
-          children [
-            Solid {
-              scale 0.2 0.2 0.2
-              children [
-                Shape {
-                  appearance PBRAppearance {
-                    baseColor 0 1 0
-                    transparency 1
-                    roughness 1
-                  }
-                  geometry Sphere {
-                    radius 0.1
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-      name "sensor_bl"
-      controller "gate_corner_position_controller"
-    }
-    Robot {
-      translation -0.2 -0.05 1.2
-      children [
-        GPS {
-          children [
-            Solid {
-              scale 0.2 0.2 0.2
-              children [
-                Shape {
-                  appearance PBRAppearance {
-                    baseColor 0 1 0
-                    transparency 1
-                    roughness 1
-                  }
-                  geometry Sphere {
-                    radius 0.1
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-      name "sensor_tl"
-      controller "gate_corner_position_controller"
-    }
-    Robot {
-      translation 0.2 -0.05 1.2
-      children [
-        GPS {
-          children [
-            Solid {
-              scale 0.2 0.2 0.2
-              children [
-                Shape {
-                  appearance PBRAppearance {
-                    baseColor 0 1 0
-                    transparency 1
-                    roughness 1
-                  }
-                  geometry Sphere {
-                    radius 0.1
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-      name "sensor_tr"
-      controller "gate_corner_position_controller"
-    }
-    Robot {
-      translation 0 -0.05 1
-      children [
-        GPS {
-          children [
-            Solid {
-              scale 0.2 0.2 0.2
-              children [
-                Shape {
-                  appearance PBRAppearance {
-                    baseColor 1 0 1
-                    transparency 1
-                    roughness 1
-                  }
-                  geometry Sphere {
-                    radius 0.1
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-      name "sensor_gate-center"
-      controller "gate_corner_position_controller"
-    }
     Solid {
       rotation 0 1 0 0
       children [
+        Robot {
+          translation 0.2 -0.05 0.8
+          children [
+            GPS {
+              children [
+                Solid {
+                  scale 0.2 0.2 0.2
+                  children [
+                    Shape {
+                      appearance PBRAppearance {
+                        baseColor 0 1 0
+                        transparency 1
+                        roughness 1
+                      }
+                      geometry Sphere {
+                        radius 0.1
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          name "sensor_br"
+          controller "gate_corner_position_controller"
+        }
+        Robot {
+          translation -0.2 -0.05 0.8
+          children [
+            GPS {
+              children [
+                Solid {
+                  scale 0.2 0.2 0.2
+                  children [
+                    Shape {
+                      appearance PBRAppearance {
+                        baseColor 0 1 0
+                        transparency 1
+                        roughness 1
+                      }
+                      geometry Sphere {
+                        radius 0.1
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          name "sensor_bl"
+          controller "gate_corner_position_controller"
+        }
+        Robot {
+          translation -0.2 -0.05 1.2
+          children [
+            GPS {
+              children [
+                Solid {
+                  scale 0.2 0.2 0.2
+                  children [
+                    Shape {
+                      appearance PBRAppearance {
+                        baseColor 0 1 0
+                        transparency 1
+                        roughness 1
+                      }
+                      geometry Sphere {
+                        radius 0.1
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          name "sensor_tl"
+          controller "gate_corner_position_controller"
+        }
+        Robot {
+          translation 0.2 -0.05 1.2
+          children [
+            GPS {
+              children [
+                Solid {
+                  scale 0.2 0.2 0.2
+                  children [
+                    Shape {
+                      appearance PBRAppearance {
+                        baseColor 0 1 0
+                        transparency 1
+                        roughness 1
+                      }
+                      geometry Sphere {
+                        radius 0.1
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          name "sensor_tr"
+          controller "gate_corner_position_controller"
+        }
+        Robot {
+          translation 0 -0.05 1
+          children [
+            GPS {
+              children [
+                Solid {
+                  scale 0.2 0.2 0.2
+                  children [
+                    Shape {
+                      appearance PBRAppearance {
+                        baseColor 1 0 1
+                        transparency 1
+                        roughness 1
+                      }
+                      geometry Sphere {
+                        radius 0.1
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          name "sensor_gate-center"
+          controller "gate_corner_position_controller"
+        }
         DEF SHAPE Shape {
           appearance PBRAppearance {
             baseColor 1 0.8 0.6
             baseColorMap ImageTexture {
               url [
-                "textures/imav2022-gate/GateTex_orange.png"
+                "/home/losca/Documents/University/Thesis/crazyflie-webots/webots/simulations/textures/GateTex_orange.png"
               ]
             }
             roughness 1
@@ -199,12 +201,22 @@ DEF GATE Solid {
       boundingObject USE SHAPE
     }
   ]
-  name "imav2022-gate"
+  name "imav2022-gate(1)"
 }
 DEF CRAZYFLIE Robot {
-  translation 0.606834 -1.71229 0.015
-  rotation 0 0 1 2.0944
+  translation -6.828728955926236e-08 -1.0299999999974105 0.03999616223638317
+  rotation 6.9057761207939795e-12 6.114304005538113e-15 1 1.5708000000000004
   children [
+    RangeFinder {
+      translation 0.03 0 0.01
+      name "range-finder-full"
+      fieldOfView 1.52
+      width 320
+      height 320
+      near 0.001
+      minRange 0.001
+      maxRange 10
+    }
     DEF Multiranger Transform {
       translation 0 0 0.02
       children [
@@ -244,16 +256,16 @@ DEF CRAZYFLIE Robot {
     Camera {
       translation 0.03 0 0.01
       children [
-        InertialUnit {
-          name "imu_camera"
-        }
         GPS {
           name "gps_camera"
         }
       ]
-      fieldOfView 1.5184
+      fieldOfView 1.52
       width 320
       height 320
+      focus Focus {
+        focalLength 0.0006
+      }
       recognition Recognition {
         segmentation TRUE
       }
@@ -442,7 +454,7 @@ DEF CRAZYFLIE Robot {
       }
     }
   ]
-  name "MY_Crazyflie"
+  name "Crazyflie"
   boundingObject Cylinder {
     height 0.03
     radius 0.05
@@ -452,10 +464,5 @@ DEF CRAZYFLIE Robot {
     mass 0.05
   }
   controller "collect_dataset_test_empty_world"
-  supervisor TRUE
-}
-Robot {
-  name "supervisor"
-  controller ""
   supervisor TRUE
 }

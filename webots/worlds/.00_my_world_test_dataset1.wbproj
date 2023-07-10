@@ -7,5 +7,5 @@ centralWidgetVisible: 1
 orthographicViewHeight: 1
 textFiles: 1 "controllers/ibvs_gt/ibvs_gt.py" "controllers/drone_firmware_tests/drone_firmware_tests.py"
 consoles: Console:All:All
-renderingDevicePerspectives: Crazyflie:camera;0;1.35802;0;0
-renderingDevicePerspectives: MY_Crazyflie:camera;1;0.825;0;0
+renderingDevicePerspectives: Crazyflie:camera;1;0.50625;0;0
+renderingDevicePerspectives: Crazyflie:range-finder-full;1;0.509375;0;0.36854
