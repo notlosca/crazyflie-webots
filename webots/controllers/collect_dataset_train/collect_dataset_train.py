@@ -43,26 +43,26 @@ np.random.seed(seed)
 
 rotate_gate = True
 # if rotate_gate:
-rotate_gate_every = 1 # 10
+rotate_gate_every = 10
 
 change_gate_color = True
 gray_scale = True
 # if change_gate_color:
-change_gate_color_every = 1 # 20
+change_gate_color_every = 20
     
 # change_gate_height = False
 # if change_gate_height:
 #     change_gate_height_every = 100
 # 
-change_scale_gate = False
+change_scale_gate = True
 gate_scale_limits = (0.8, 1.2)
 scaling_matrix = np.identity(3)
 if change_scale_gate:
-    change_scale_gate_every = 1 # 500
+    change_scale_gate_every = 500
 
 wall_flat_colors = True
 if wall_flat_colors:
-    wall_flat_colors_every = 1 # 100
+    wall_flat_colors_every = 100
 
 # We keep the 4 wall structure for the first n steps. Then we start to move every panel and the floor as well.
 rotate_background_after = 20000
@@ -90,7 +90,7 @@ intensity_limits = (0.,10.)
 on_threshold = 0.5 # If above this threshold, we switch on the light
 random_color_threshold = 0.7 # If above lights' color is randomized, otherwise is set to white
 if change_lights:
-    change_lights_every = 1 # 60
+    change_lights_every = 60
 
                 ##### ------ LIMITS ------ #####
 
@@ -112,7 +112,7 @@ z_limits = (0.05, 1.5)
 ########### ------------------ SAVING THINGS -------------------- ###########
 
 # Set to True if you want to collect data
-collect_data = False
+collect_data = True
 
 # we store all the parameters and relevant experiment info in a dict
 exp_dict = {"objects":{}, "env_objects":{}, "settings":{}}
@@ -299,7 +299,7 @@ if __name__ == '__main__':
         obj = {"color": solid.getField('recognitionColors').getMFColor(0)}  
         # obj['solid'] = solid  
         obj['name'] = solid.getField('name').getSFString()
-        print(obj['name'])
+        # print(obj['name'])
         obj['translation'] = solid.getField('translation').getSFVec3f()
         obj['rotation'] = solid.getField('rotation').getSFRotation()
         obj['scale'] = solid.getField('scale').getSFVec3f()
@@ -418,6 +418,7 @@ if __name__ == '__main__':
     frame_n = 0
     counter = -1
     samples = []
+    dataset_part = 0
 
     # Main loop:
     while robot.step(timestep) != -1 and frame_n < n_samples:
@@ -462,146 +463,146 @@ if __name__ == '__main__':
                     # The Color field of the gate is in Gate -> Children -> Solid "Gate" (idx = 5) -> Children -> Shape -> Appearance -> baseColor
                     gate_node.getField('children').getMFNode(5).getField('appearance').getSFNode().getField('baseColor').setSFColor([r_rand, g_rand, b_rand])
 
-        # if rotate_floor:
-        #     if it_idx % rotate_floor_every == 0 and frame_n != 0:
+        if rotate_floor:
+            if it_idx % rotate_floor_every == 0 and frame_n != 0:
 
-        #         original_axangle = floor_panel['starting_rotation']
-        #         current_rot_mat = transforms3d.axangles.axangle2mat(original_axangle[:-1], angle=original_axangle[-1])
+                original_axangle = floor_panel['starting_rotation']
+                current_rot_mat = transforms3d.axangles.axangle2mat(original_axangle[:-1], angle=original_axangle[-1])
 
-        #         # Perform a rotation around y axis -> a pitch rotation
-        #         floor_pitch_limits = (-np.deg2rad(45), np.deg2rad(45))
-        #         random_pitch = np.random.uniform(*floor_pitch_limits)
-        #         new_rot_mat = current_rot_mat@rotation.rotation_matrix(roll=0,pitch=random_pitch,yaw=0)
-        #         new_axangle = transforms3d.axangles.mat2axangle(new_rot_mat)
-        #         ax_angle = list(new_axangle[0])
-        #         ax_angle.append(new_axangle[-1]) 
-        #         floor_panel['node'].getField('rotation').setSFRotation(ax_angle)
+                # Perform a rotation around y axis -> a pitch rotation
+                floor_pitch_limits = (-np.deg2rad(45), np.deg2rad(45))
+                random_pitch = np.random.uniform(*floor_pitch_limits)
+                new_rot_mat = current_rot_mat@rotation.rotation_matrix(roll=0,pitch=random_pitch,yaw=0)
+                new_axangle = transforms3d.axangles.mat2axangle(new_rot_mat)
+                ax_angle = list(new_axangle[0])
+                ax_angle.append(new_axangle[-1]) 
+                floor_panel['node'].getField('rotation').setSFRotation(ax_angle)
 
-        # if rotate_background:
-        #     if it_idx % rotate_background_every == 0 and frame_n != 0:
+        if rotate_background:
+            if it_idx % rotate_background_every == 0 and frame_n != 0:
 
-        #         # Clean the space radius of the drone
-        #         # TODO: right now all the items near the gate are not there
+                # Clean the space radius of the drone
+                # TODO: right now all the items near the gate are not there
                 
-        #         # Pick the panels and set them randomly
-        #         for obs in obstacles:
-        #             if 'Panel - Textured' in obs[0].getField('name').getSFString():
-        #                 # Compute the random spawn pose (translation and orientation)
-        #                 # Gate
-        #                 translation_gate = gate_node.getField('translation').getSFVec3f()
-        #                 gate_center = gate_node.getField('children').getMFNode(4).getField('translation').getSFVec3f()
-        #                 gate_rot = gate_node.getField('rotation').getSFRotation()
+                # Pick the panels and set them randomly
+                for obs in obstacles:
+                    if 'Panel - Textured' in obs[0].getField('name').getSFString():
+                        # Compute the random spawn pose (translation and orientation)
+                        # Gate
+                        translation_gate = gate_node.getField('translation').getSFVec3f()
+                        gate_center = gate_node.getField('children').getMFNode(4).getField('translation').getSFVec3f()
+                        gate_rot = gate_node.getField('rotation').getSFRotation()
                         
-        #                 # Position
-        #                 radius_limits = (2.5, 3.5)
-        #                 r = np.random.uniform(*radius_limits)
-        #                 phi = np.random.uniform(0,2*np.pi)
+                        # Position
+                        radius_limits = (2.5, 3.5)
+                        r = np.random.uniform(*radius_limits)
+                        phi = np.random.uniform(0,2*np.pi)
                         
-        #                 x = gate_center[0] + r*np.cos(phi) 
-        #                 y = gate_center[1] + r*np.sin(phi)
-        #                 z = -0.5
+                        x = gate_center[0] + r*np.cos(phi) 
+                        y = gate_center[1] + r*np.sin(phi)
+                        z = -0.5
 
-        #                 random_pt = [x,y,z]
-        #                 obs[0].getField('translation').setSFVec3f(random_pt)
+                        random_pt = [x,y,z]
+                        obs[0].getField('translation').setSFVec3f(random_pt)
                         
-        #                 # Orientation
-        #                 delta_array = np.array(gate_center) - np.array(random_pt)
-        #                 r, pitch, yaw = cs.cart2sp(x=delta_array[0], y=delta_array[1], z=delta_array[-1])
+                        # Orientation
+                        delta_array = np.array(gate_center) - np.array(random_pt)
+                        r, pitch, yaw = cs.cart2sp(x=delta_array[0], y=delta_array[1], z=delta_array[-1])
 
-        #                 R = rotation.rotation_matrix(roll=0, pitch=0, yaw=yaw + np.pi/2) # To be able to show the image texture
-        #                 axangle = transforms3d.euler.euler2axangle(*transforms3d.euler.mat2euler(R))
-        #                 ax_angle = list(axangle[0])
-        #                 ax_angle.append(axangle[-1]) 
-        #                 obs[0].getField('rotation').setSFRotation(ax_angle)
+                        R = rotation.rotation_matrix(roll=0, pitch=0, yaw=yaw + np.pi/2) # To be able to show the image texture
+                        axangle = transforms3d.euler.euler2axangle(*transforms3d.euler.mat2euler(R))
+                        ax_angle = list(axangle[0])
+                        ax_angle.append(axangle[-1]) 
+                        obs[0].getField('rotation').setSFRotation(ax_angle)
                         
-        #                 # Randomly scale the panels
-        #                 scale_limits = (0.03, 0.1)
-        #                 scale = np.random.uniform(*scale_limits)
-        #                 obs[0].getField('scale').setSFVec3f(3*[scale])
+                        # Randomly scale the panels
+                        scale_limits = (0.03, 0.1)
+                        scale = np.random.uniform(*scale_limits)
+                        obs[0].getField('scale').setSFVec3f(3*[scale])
         
-        # if random_images:
-        #     if it_idx % random_images_every == 0 and frame_n != 0:
+        if random_images:
+            if it_idx % random_images_every == 0 and frame_n != 0:
                 
-        #         # With 30% probability we change the color of the panel image
-        #         change_color = np.random.uniform(0,1,1) <= .3
+                # With 30% probability we change the color of the panel image
+                change_color = np.random.uniform(0,1,1) <= .3
 
-        #         for obs in obstacles:
-        #             if 'Panel - Textured' in obs[0].getField('name').getSFString():
-        #                 solid = obs[0]
-        #                 shape1 = solid.getField('children').getMFNode(0).getField('children').getMFNode(1).getField('children').getMFNode(1) # I need the second shape, idx = 1
-        #                 random_img_id = int(np.random.uniform(low=0, high=len(imgs)))
-        #                 # Set the new image
-        #                 shape1.getField('appearance').getSFNode().getField('baseColorMap').getSFNode().getField('url').setMFString(0, f'textures/textured_panel_3m/{imgs[random_img_id]}')
+                for obs in obstacles:
+                    if 'Panel - Textured' in obs[0].getField('name').getSFString():
+                        solid = obs[0]
+                        shape1 = solid.getField('children').getMFNode(0).getField('children').getMFNode(1).getField('children').getMFNode(1) # I need the second shape, idx = 1
+                        random_img_id = int(np.random.uniform(low=0, high=len(imgs)))
+                        # Set the new image
+                        shape1.getField('appearance').getSFNode().getField('baseColorMap').getSFNode().getField('url').setMFString(0, f'textures/textured_panel_3m/{imgs[random_img_id]}')
                         
-        #                 if change_color:
-        #                     if gray_scale:
-        #                         gray = np.random.uniform(0,1,1)
-        #                         colors = [gray, gray, gray]
-        #                     else:
-        #                         rgb = np.random.uniform(0,1,3)
-        #                         colors = list(rgb)
+                        if change_color:
+                            if gray_scale:
+                                gray = np.random.uniform(0,1,1)
+                                colors = [gray, gray, gray]
+                            else:
+                                rgb = np.random.uniform(0,1,3)
+                                colors = list(rgb)
                             
-        #                     shape1.getField('appearance').getSFNode().getField('baseColor').setSFColor(colors)
+                            shape1.getField('appearance').getSFNode().getField('baseColor').setSFColor(colors)
                         
 
-        #             elif 'Floor - Panel' in obs[0].getField('name').getSFString():
-        #                 solid = obs[0]
-        #                 shape1 = solid.getField('children').getMFNode(0).getField('children').getMFNode(1).getField('children').getMFNode(1) # I need the second shape, idx = 1
+                    elif 'Floor - Panel' in obs[0].getField('name').getSFString():
+                        solid = obs[0]
+                        shape1 = solid.getField('children').getMFNode(0).getField('children').getMFNode(1).getField('children').getMFNode(1) # I need the second shape, idx = 1
                         
-        #                 # 50% probability that the image is an actual floor
-        #                 if np.random.uniform(0,1,1) >= .5:
-        #                     random_img_id = int(np.random.uniform(low=0, high=len(floor_imgs)))
-        #                     shape1.getField('appearance').getSFNode().getField('baseColorMap').getSFNode().getField('url').setMFString(0, f'textures/textured_panel_3m/floor/{floor_imgs[random_img_id]}')
+                        # 50% probability that the image is an actual floor
+                        if np.random.uniform(0,1,1) >= .5:
+                            random_img_id = int(np.random.uniform(low=0, high=len(floor_imgs)))
+                            shape1.getField('appearance').getSFNode().getField('baseColorMap').getSFNode().getField('url').setMFString(0, f'textures/textured_panel_3m/floor/{floor_imgs[random_img_id]}')
 
-        #                 else:
-        #                     random_img_id = int(np.random.uniform(low=0, high=len(imgs)))
-        #                     # Set the new image
-        #                     # shape1.getField('appearance').getSFNode().getField('baseColorMap').getSFNode().getField('url').setMFString(0, f'textures/textured_panel_3m/{imgs[random_img_id]}')
-        #                     shape1.getField('appearance').getSFNode().getField('baseColorMap').getSFNode().getField('url').setMFString(0, f'textures/textured_panel_3m/{imgs[random_img_id]}')
+                        else:
+                            random_img_id = int(np.random.uniform(low=0, high=len(imgs)))
+                            # Set the new image
+                            # shape1.getField('appearance').getSFNode().getField('baseColorMap').getSFNode().getField('url').setMFString(0, f'textures/textured_panel_3m/{imgs[random_img_id]}')
+                            shape1.getField('appearance').getSFNode().getField('baseColorMap').getSFNode().getField('url').setMFString(0, f'textures/textured_panel_3m/{imgs[random_img_id]}')
                         
-        #                 if change_color:
-        #                     if gray_scale:
-        #                         gray = np.random.uniform(0,1,1)
-        #                         colors = [gray, gray, gray]
-        #                     else:
-        #                         rgb = np.random.uniform(0,1,3)
-        #                         colors = list(rgb)
+                        if change_color:
+                            if gray_scale:
+                                gray = np.random.uniform(0,1,1)
+                                colors = [gray, gray, gray]
+                            else:
+                                rgb = np.random.uniform(0,1,3)
+                                colors = list(rgb)
                             
-        #                     shape1.getField('appearance').getSFNode().getField('baseColor').setSFColor(colors)
+                            shape1.getField('appearance').getSFNode().getField('baseColor').setSFColor(colors)
                         
 
-        # # if change_gate_height:
-        # #     if it_idx % change_gate_height_every == 0 and frame_n != 0:
-        # #         height_lim = (-0.5, 0.5)
-        # #         random_height = np.random.uniform(*height_lim)
-        # #         gate_node = robot.getFromDef("GATE").getField('children').getMFNode(0)
-        # #         translation_gate = gate_node.getField('translation').getSFVec3f()
-        # #         gate_node.getField('translation').setSFVec3f([translation_gate[0], translation_gate[1], random_height])
-        # #         
-        # if change_scale_gate:
-        #     if it_idx % change_scale_gate_every == 0 and frame_n != 0:
+        # if change_gate_height:
+        #     if it_idx % change_gate_height_every == 0 and frame_n != 0:
+        #         height_lim = (-0.5, 0.5)
+        #         random_height = np.random.uniform(*height_lim)
+        #         gate_node = robot.getFromDef("GATE").getField('children').getMFNode(0)
+        #         translation_gate = gate_node.getField('translation').getSFVec3f()
+        #         gate_node.getField('translation').setSFVec3f([translation_gate[0], translation_gate[1], random_height])
+        #         
+        if change_scale_gate:
+            if it_idx % change_scale_gate_every == 0 and frame_n != 0:
                 
-        #         random_scale_x = np.random.uniform(*gate_scale_limits) # Width
-        #         random_scale_z = np.random.uniform(*gate_scale_limits) # Height
+                random_scale_x = np.random.uniform(*gate_scale_limits) # Width
+                random_scale_z = np.random.uniform(*gate_scale_limits) # Height
 
-        #         scaling_matrix = np.diag([random_scale_x,1,random_scale_z])
-        #         # Rescale the gate
-        #         for j in range(gate_geometry_coord.getCount()):
-        #             original_pt = original_pts[j]
-        #             gate_geometry_coord.setMFVec3f(j, list(np.diag(scaling_matrix*original_pt)))
+                scaling_matrix = np.diag([random_scale_x,1,random_scale_z])
+                # Rescale the gate
+                for j in range(gate_geometry_coord.getCount()):
+                    original_pt = original_pts[j]
+                    gate_geometry_coord.setMFVec3f(j, list(np.diag(scaling_matrix*original_pt)))
 
-        #         br_node = gate_node.getField('children').getMFNode(0)
-        #         bl_node = gate_node.getField('children').getMFNode(1)
-        #         tl_node = gate_node.getField('children').getMFNode(2)
-        #         tr_node = gate_node.getField('children').getMFNode(3)
-        #         gc_node = gate_node.getField('children').getMFNode(4)
+                br_node = gate_node.getField('children').getMFNode(0)
+                bl_node = gate_node.getField('children').getMFNode(1)
+                tl_node = gate_node.getField('children').getMFNode(2)
+                tr_node = gate_node.getField('children').getMFNode(3)
+                gc_node = gate_node.getField('children').getMFNode(4)
 
-        #         # Rescale the gate sensors
-        #         br_node.getField('translation').setSFVec3f(list(np.diag(scaling_matrix*original_br)))
-        #         bl_node.getField('translation').setSFVec3f(list(np.diag(scaling_matrix*original_bl)))
-        #         tl_node.getField('translation').setSFVec3f(list(np.diag(scaling_matrix*original_tl)))
-        #         tr_node.getField('translation').setSFVec3f(list(np.diag(scaling_matrix*original_tr)))
-        #         gc_node.getField('translation').setSFVec3f(list(np.diag(scaling_matrix*original_gc)))
+                # Rescale the gate sensors
+                br_node.getField('translation').setSFVec3f(list(np.diag(scaling_matrix*original_br)))
+                bl_node.getField('translation').setSFVec3f(list(np.diag(scaling_matrix*original_bl)))
+                tl_node.getField('translation').setSFVec3f(list(np.diag(scaling_matrix*original_tl)))
+                tr_node.getField('translation').setSFVec3f(list(np.diag(scaling_matrix*original_tr)))
+                gc_node.getField('translation').setSFVec3f(list(np.diag(scaling_matrix*original_gc)))
 
         if change_lights:
             if it_idx % change_lights_every == 0 and frame_n != 0:
@@ -864,12 +865,19 @@ if __name__ == '__main__':
     
         # print(it_idx, frame_n)
 
-    ########### ------------------ SAVING THINGS -------------------- ###########
+        ########### ------------------ SAVING THINGS -------------------- ###########
 
-    if collect_data:
-        with open(f"{exp_folder}/samples.pkl", "wb") as f:
-            pickle.dump(samples, f)
-            print(f"Data saved in {exp_folder}.")
+        # Save the pickle dataset every 1500 frames
+        if collect_data and frame_n % 1500 == 0:
+            
+            with open(f"{exp_folder}/samples_{dataset_part}.pkl", "wb") as f:
+                pickle.dump(samples, f)
+                print(f"Data part {dataset_part} saved in {exp_folder}.")
+            
+            # Reinitialize the sample list
+            samples = []
+            # Increase the dataset part
+            dataset_part += 1
 
-    ########### ------------------ SAVING THINGS -------------------- ###########
+        ########### ------------------ SAVING THINGS -------------------- ###########
             
