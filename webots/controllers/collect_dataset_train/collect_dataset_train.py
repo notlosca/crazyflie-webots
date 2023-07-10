@@ -30,7 +30,7 @@ import sys, shutil
 sys.path.append('../../../controllers/')
 
 # Import the path for the corner detection module
-sys.path.append('../../../../scarciglia-nanodrone-gate-detection/')
+sys.path.append('../../../../scarciglia-nanodrone-gate-detection-main/')
 
 from src import corner, rotation, geometry
 from src import filter as flt
@@ -53,8 +53,8 @@ change_gate_color_every = 20
 # change_gate_height = False
 # if change_gate_height:
 #     change_gate_height_every = 100
-# 
-change_scale_gate = True
+
+change_scale_gate = False
 gate_scale_limits = (0.8, 1.2)
 scaling_matrix = np.identity(3)
 if change_scale_gate:
@@ -112,7 +112,7 @@ z_limits = (0.05, 1.5)
 ########### ------------------ SAVING THINGS -------------------- ###########
 
 # Set to True if you want to collect data
-collect_data = True
+collect_data = False
 
 # we store all the parameters and relevant experiment info in a dict
 exp_dict = {"objects":{}, "env_objects":{}, "settings":{}}
@@ -527,7 +527,7 @@ if __name__ == '__main__':
                 change_color = np.random.uniform(0,1,1) <= .3
 
                 for obs in obstacles:
-                    if 'Panel - Textured' in obs[0].getField('name').getSFString():
+                    if 'Wall - ' in obs[0].getField('name').getSFString():
                         solid = obs[0]
                         shape1 = solid.getField('children').getMFNode(0).getField('children').getMFNode(1).getField('children').getMFNode(1) # I need the second shape, idx = 1
                         random_img_id = int(np.random.uniform(low=0, high=len(imgs)))
@@ -544,6 +544,24 @@ if __name__ == '__main__':
                             
                             shape1.getField('appearance').getSFNode().getField('baseColor').setSFColor(colors)
                         
+                    
+                    elif 'Panel - Textured' in obs[0].getField('name').getSFString():
+                        solid = obs[0]
+                        shape1 = solid.getField('children').getMFNode(0).getField('children').getMFNode(1).getField('children').getMFNode(1) # I need the second shape, idx = 1
+                        random_img_id = int(np.random.uniform(low=0, high=len(imgs)))
+                        # Set the new image
+                        shape1.getField('appearance').getSFNode().getField('baseColorMap').getSFNode().getField('url').setMFString(0, f'textures/textured_panel_3m/{imgs[random_img_id]}')
+                        
+                        if change_color:
+                            if gray_scale:
+                                gray = np.random.uniform(0,1,1)
+                                colors = [gray, gray, gray]
+                            else:
+                                rgb = np.random.uniform(0,1,3)
+                                colors = list(rgb)
+                            
+                            shape1.getField('appearance').getSFNode().getField('baseColor').setSFColor(colors)
+                      
 
                     elif 'Floor - Panel' in obs[0].getField('name').getSFString():
                         solid = obs[0]
@@ -589,7 +607,7 @@ if __name__ == '__main__':
                 # Rescale the gate
                 for j in range(gate_geometry_coord.getCount()):
                     original_pt = original_pts[j]
-                    gate_geometry_coord.setMFVec3f(j, list(np.diag(scaling_matrix*original_pt)))
+                    gate_geometry_coord.setMFVec3f(j, list(scaling_matrix@original_pt))
 
                 br_node = gate_node.getField('children').getMFNode(0)
                 bl_node = gate_node.getField('children').getMFNode(1)
@@ -659,7 +677,6 @@ if __name__ == '__main__':
                     floor_panel['node'].getField('children').getMFNode(0).getField('children').getMFNode(1).getField('children').getMFNode(1).getField('appearance').getSFNode().getField('baseColor').setSFColor(colors)
 
         ########### ------------------ FLAGS ------------------ ###########
-
 
         ########### ------------------ CORNERS - GROUND TRUTH ------------------ ###########
 
@@ -852,12 +869,13 @@ if __name__ == '__main__':
         
         it_idx += 1
 
+        if frame_n == random_images_after:
+            random_images = True
+            wall_flat_colors = False
+
         if frame_n == rotate_background_after:
             rotate_background = True
             rotate_floor = True
-
-        if frame_n == random_images_after:
-            random_images = True
 
         if frame_n % 1000 == 0:
             print(f"{frame_n} good frames.")
@@ -881,3 +899,4 @@ if __name__ == '__main__':
 
         ########### ------------------ SAVING THINGS -------------------- ###########
             
+v
