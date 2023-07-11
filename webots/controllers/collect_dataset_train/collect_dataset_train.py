@@ -899,4 +899,12 @@ if __name__ == '__main__':
 
         ########### ------------------ SAVING THINGS -------------------- ###########
             
-v
+    ########### ------------------ SAVING THINGS -------------------- ###########
+
+    # Save the remaining data
+    if collect_data:
+        with open(f"{exp_folder}/samples_{dataset_part}.pkl", "wb") as f:
+            pickle.dump(samples, f)
+            print(f"Data saved in {exp_folder}.")
+
+    ########### ------------------ SAVING THINGS -------------------- ###########
