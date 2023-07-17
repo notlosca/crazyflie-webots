@@ -42,22 +42,33 @@ np.random.seed(0)
 
 rotate_gate = True
 if rotate_gate:
-    rotate_gate_every = 100
+    rotate_gate_every = 10
 
 change_gate_color = True
 gray_scale = True
 if change_gate_color:
 #     change_gate_color_every = 2000
-    change_gate_color_every = 700
+    change_gate_color_every = 20
 
-# change_gate_height = False
-# if change_gate_height:
-#     change_gate_height_every = 100
-# 
-change_scale_gate = True
+change_scale_gate = False
 if change_scale_gate:
     change_scale_gate_every = 500
     
+change_bg_color = True
+if change_bg_color:
+    change_bg_color_every = 100
+
+change_floor_color = True
+if change_floor_color:
+    change_floor_color_every = 100
+
+change_lights = True
+intensity_limits = (0.,10.)
+on_threshold = 0.5 # If above this threshold, we switch on the light
+random_color_threshold = 0.7 # If above lights' color is randomized, otherwise is set to white
+if change_lights:
+    change_lights_every = 60
+
                 ##### ------ LIMITS ------ #####
 
 # Horizontal FOV of the camera. Used to limit the random yaw of the drone
@@ -117,7 +128,17 @@ exp_dict["settings"] = {
         "pitch_limits": pitch_limits,
         "roll_limits": roll_limits,
         "radius_limits": drone_radius_limits
-        }
+        },
+        "lights":{"on_threshold": on_threshold,
+        "random_color_threshold":random_color_threshold, 
+        "intensity_limits":intensity_limits},
+}
+
+flags = {'rotate_gate':rotate_gate, 'change_gate_color':change_gate_color,
+         'gray_scale':gray_scale, 'change_scale_gate':change_scale_gate,
+         'change_bg_color':change_bg_color,
+         'change_floor_color':change_floor_color, 
+         'change_lights':change_lights
 }
 
 ########### ------------------ SAVING THINGS -------------------- ###########
@@ -211,6 +232,35 @@ if __name__ == '__main__':
     tr = (np.array(T_G)@np.append(tr, 1))[:-1]
 
     ########### ------------------ WEBOTS NODES ------------------ ###########
+
+            ########### ------------------ LIGHT NODES ------------------ ###########
+
+    lights = {}
+    light_names = ['SpotL1', 'SpotL2', 'SpotL3']
+
+    for l_name in light_names:
+        solid = robot.getFromDef(l_name)
+        # Pose
+        loc = solid.getField('translation').getSFVec3f()
+        rot = solid.getField('rotation').getSFRotation()
+        light_node = solid.getField('children').getMFNode(0)
+        on_flag = light_node.getField('on').getSFBool()
+        intensity_val = light_node.getField('intensity').getSFFloat()
+        color = light_node.getField('color').getSFColor()
+        lights[l_name] = {'name': l_name, 'node': light_node, 'location':loc, 'rotation':rot, 
+                          'on':on_flag, 'intensity':intensity_val, 'color':color}
+
+            ########### ------------------ LIGHT NODES ------------------ ###########
+
+    original_bg_color = robot.getFromDef('BACKGROUND').getField('skyColor').getMFColor(0)
+
+    new_color = np.random.uniform(0,1,3)
+    if (original_bg_color - new_color).sum() <= 0.1:
+        # this is ok if all the original rgb values are not the same
+        new_color = new_color[::-1] # Change the order to make sure we don't have the same bg image
+
+    # Set a new color
+    robot.getFromDef('BACKGROUND').getField('skyColor').setMFColor(0,list(new_color))
 
     ########### ------------------ OBJECTS ------------------ ###########
 
@@ -335,6 +385,155 @@ if __name__ == '__main__':
         # Dictionary containg data of the current sample
         sample = {}
 
+        ########### ------------------ CORNERS - GROUND TRUTH ------------------ ###########
+
+        # Gate
+        translation_gate = gate_node.getField('translation').getSFVec3f()
+        gate_center = gate_node.getField('children').getMFNode(4).getField('translation').getSFVec3f()
+        gate_rot = gate_node.getField('rotation').getSFRotation()
+
+        # Gate pose. This is used to transform the gate points.
+        T_G = SE3(translation_gate)*SE3(transforms3d.axangles.axangle2aff(gate_rot[:-1], gate_rot[-1]))
+
+        br = gate_node.getField('children').getMFNode(0).getField('translation').getSFVec3f()
+        bl = gate_node.getField('children').getMFNode(1).getField('translation').getSFVec3f()
+        tl = gate_node.getField('children').getMFNode(2).getField('translation').getSFVec3f()
+        tr = gate_node.getField('children').getMFNode(3).getField('translation').getSFVec3f()
+
+
+        # Rotate gate points. Transform in homogenous coordinates, perform the matmul, and then pick the first three entries.
+        tl = (np.array(T_G)@np.append(tl, 1))[:-1]
+        bl = (np.array(T_G)@np.append(bl, 1))[:-1]
+        br = (np.array(T_G)@np.append(br, 1))[:-1]
+        tr = (np.array(T_G)@np.append(tr, 1))[:-1]
+
+        P = np.array([
+            tl, bl, br, tr
+        ]).T
+
+        rotation_matrix_world_drone = rotation.rotation_matrix(roll, pitch, yaw)
+        wd_tr = np.array([x_global, y_global, z_global])
+        extrinsic_matrix_world_drone = rotation.get_extrinsic_matrix(rotation_matrix_world_drone, translation_vector=wd_tr)
+        
+        rotation_matrix_drone_camera = rotation.rotation_matrix(roll=-np.pi/2, pitch=0, yaw=-np.pi/2)
+        dc_tr = camera_drone_tr
+        extrinsic_matrix_drone_camera = rotation.get_extrinsic_matrix(rotation_matrix_drone_camera, translation_vector=dc_tr)
+
+        extrinsic_matrix = extrinsic_matrix_world_drone@extrinsic_matrix_drone_camera
+
+        # It raises problems
+        # T_C = SE3(wd_tr)*SE3.RPY(roll,pitch,yaw)*SE3(dc_tr)*SE3.RPY(-np.pi/2, 0, -np.pi/2)
+        # With mine it works
+        T_C = extrinsic_matrix
+        # Ground truth projected into the image space
+        GT_p_detected = cam.project_point(P, pose=SE3(T_C, check=False))
+        # print(GT_p_detected)
+        
+        ########### ------------------ CORNERS - GROUND TRUTH ------------------ ###########
+        
+        ########### ------------------ CAMERA IMAGES -------------------- ########### 
+
+        w, h = camera.getWidth(), camera.getHeight()
+        cameraData = camera.getImage()  # Note: uint8 string
+        segData = camera.getRecognitionSegmentationImage() # Segmentation image
+
+        image = np.frombuffer(cameraData, np.uint8).reshape(h, w, 4) # BGR, alpha (transparency)
+        seg = np.frombuffer(segData, np.uint8).reshape(h, w, 4)
+
+        cam_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) # gray-scale image
+        
+        w, h = range_finder_full.getWidth(), range_finder_full.getHeight()
+        rangeData = range_finder_full.getRangeImage(data_type="list")
+        range_image_full = np.array(rangeData, np.float32).reshape(h, w)
+
+        ########### ------------------ CAMERA IMAGES -------------------- ########### 
+
+
+        ########### ------------------ SAVING THINGS -------------------- ###########
+
+        # Check whether if the ground truths are present in the image. If yes save everything
+        if np.isnan(GT_p_detected).sum() == 0 and np.min(GT_p_detected) >= 0 and np.max(GT_p_detected) < img_size[0]:
+            # gt_img = np.zeros_like(image)
+            # # Show image
+            # for id, col in enumerate(colors):
+            #     v, u = GT_p_detected[:,id] # Ground truth into image space
+            #     image = cv2.circle(image, (int(v),int(u)), radius=int(np.round(0.05*320,0)), color=(255, 255, 255), thickness=-1)
+            #     # gt_img = cv2.circle(gt_img, (int(v),int(u)), radius=int(np.round(0.05*320,0)), color=(255, 255, 255), thickness=-1)
+            #     gt_img = cv2.circle(gt_img, (int(v),int(u)), radius=10, color=(255, 255, 255), thickness=-1)
+            #     # gt_img = cv2.blur(gt_img, (7,7))
+            #     gt_img = scipy.ndimage.gaussian_filter(gt_img, sigma=1)
+            #     # image = cv2.putText(image, text=str(id), org = (int(x),int(y)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.5, color = (255,255,255), thickness = 1)
+            
+            # # Resize for the ground truth
+            # image = cv2.resize(gt_img, (20,20))
+        
+            if collect_data:
+                # # Save the image
+                # cv2.imwrite(f"{gt_imgs_folder}"+f'/img_{frame_n}.png', cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+                
+                # To be coherent with the drone orientation, transform the axangle orientation into roll, pitch and yaw
+                gate_axangle = gate_node.getField('rotation').getSFRotation()[:-1], gate_node.getField('rotation').getSFRotation()[-1]
+                gate_rpy = transforms3d.euler.axangle2euler(gate_axangle[0], gate_axangle[-1])
+
+                # Save the data
+                sample["sample_n"] = frame_n
+                sample['image'] = cam_img
+                sample['h'], sample['w'] = img_size
+                sample['c'] = 1 # Gray-scale images
+                sample['gate'] = {'position':gate_node.getField('translation').getSFVec3f(), 
+                                'orientation':list(gate_rpy)}
+                sample["drone"] = {'position':gps.getValues(),
+                                'orientation': imu.getRollPitchYaw(),}
+                sample['GT_3D_space'] = P
+                sample['GT_image_space'] = GT_p_detected
+                sample["iteration_n"] = it_idx
+                sample['flags'] = flags
+                sample['segmentation_image'] = seg
+                sample['range_image_full'] = range_image_full
+                
+                # rec_objects = []
+                # 
+                # # Store info about objects recognized by the camera
+                # for rec_obj in camera.getRecognitionObjects():
+                #     # https://www.cyberbotics.com/doc/reference/camera?tab-language=python#camera-recognition-object
+                #     obj = {	
+                #     "w_id": rec_obj.getId(),
+                #     "camera_p": rec_obj.getPosition(),
+                #     "camera_o": rec_obj.getOrientation(),
+                #     "camera_size": rec_obj.getSize(),
+                #     "image_p": rec_obj.getPositionOnImage(),
+                #     "image_size": rec_obj.getSizeOnImage(),
+                #     "name": robot.getFromId(rec_obj.getId()).getField('name').getSFString()
+                #     }
+                #     rec_objects.append(obj)
+                # sample["rec_objects"] = rec_objects
+                samples.append(sample)
+
+                # path = f"{imgs_folder}/img_{frame_n}.png"
+                # cv2.imwrite(path, cam_img)
+                # path = f"{imgs_folder}/seg_{frame_n}.png"
+                # cv2.imwrite(path, seg)
+                
+                # r_i = []
+                # for els in range_image:
+                #     r_i_row = []
+                #     for el in els:
+                #         if el == float('inf'):
+                #             el = 4.0
+                #         
+                #         r_i_row.append(int(el*255/4.0))
+                #     r_i.append(r_i_row)
+                # cv2.imwrite(path, np.asarray(r_i, dtype=np.uint8))
+
+                # path = f"{imgs_folder}" + f"range_full_{frame_n}.png"
+                # np.save(path, range_image_full)
+            
+            # Increase the counter of the correct frames
+            frame_n += 1
+        
+        ########### ------------------ SAVING THINGS -------------------- ########### 
+
+
         ########### ------------------ FLAGS ------------------ ###########
 
         if rotate_gate:
@@ -451,175 +650,74 @@ if __name__ == '__main__':
         # #         translation_gate = gate_node.getField('translation').getSFVec3f()
         # #         gate_node.getField('translation').setSFVec3f([translation_gate[0], translation_gate[1], random_height])
         # #         
-        if change_scale_gate:
-            if it_idx % change_scale_gate_every == 0 and frame_n != 0:
-                gate_scale_limits = (0.8, 1.2)
-                random_scale_x = np.random.uniform(*gate_scale_limits) # Width
-                random_scale_z = np.random.uniform(*gate_scale_limits) # Height
+        # if change_scale_gate:
+        #     if it_idx % change_scale_gate_every == 0 and frame_n != 0:
+        #         gate_scale_limits = (0.8, 1.2)
+        #         random_scale_x = np.random.uniform(*gate_scale_limits) # Width
+        #         random_scale_z = np.random.uniform(*gate_scale_limits) # Height
 
-                scaling_matrix = np.diag([random_scale_x,1,random_scale_z])
-                for j in range(gate_geometry_coord.getCount()):
-                    original_pt = original_pts[j]
-                    gate_geometry_coord.setMFVec3f(j, list(np.diag(scaling_matrix*original_pt)))
+        #         scaling_matrix = np.diag([random_scale_x,1,random_scale_z])
+        #         for j in range(gate_geometry_coord.getCount()):
+        #             original_pt = original_pts[j]
+        #             gate_geometry_coord.setMFVec3f(j, list(np.diag(scaling_matrix*original_pt)))
 
-                br_node = gate_node.getField('children').getMFNode(0)
-                bl_node = gate_node.getField('children').getMFNode(1)
-                tl_node = gate_node.getField('children').getMFNode(2)
-                tr_node = gate_node.getField('children').getMFNode(3)
+        #         br_node = gate_node.getField('children').getMFNode(0)
+        #         bl_node = gate_node.getField('children').getMFNode(1)
+        #         tl_node = gate_node.getField('children').getMFNode(2)
+        #         tr_node = gate_node.getField('children').getMFNode(3)
 
-                br_node.getField('translation').setSFVec3f(list(np.diag(scaling_matrix*original_br)))
-                bl_node.getField('translation').setSFVec3f(list(np.diag(scaling_matrix*original_bl)))
-                tl_node.getField('translation').setSFVec3f(list(np.diag(scaling_matrix*original_tl)))
-                tr_node.getField('translation').setSFVec3f(list(np.diag(scaling_matrix*original_tr)))
+        #         br_node.getField('translation').setSFVec3f(list(np.diag(scaling_matrix*original_br)))
+        #         bl_node.getField('translation').setSFVec3f(list(np.diag(scaling_matrix*original_bl)))
+        #         tl_node.getField('translation').setSFVec3f(list(np.diag(scaling_matrix*original_tl)))
+        #         tr_node.getField('translation').setSFVec3f(list(np.diag(scaling_matrix*original_tr)))
+
+        if change_bg_color:
+            if it_idx % change_bg_color_every == 0 and frame_n != 0:
+                new_color = np.random.uniform(0,1,3)
+                if (original_bg_color - new_color).sum() <= 0.1:
+                    # this is ok if all the original rgb values are not the same
+                    new_color = new_color[::-1] # Change the order to make sure we don't have the same bg image
+
+                # Set a new color
+                robot.getFromDef('BACKGROUND').getField('skyColor').setMFColor(0,list(new_color))
+        
+        if change_floor_color:
+            if it_idx % change_floor_color_every == 0 and frame_n != 0:
+                
+                # 50% of the samples will be totally black
+                if np.random.uniform(0,1) <= 0.5:
+                    # Set IBLStrength, related to the luminosity of the floor
+                    robot.getFromDef('FLOOR').getField('appearance').getSFNode().getField('IBLStrength').setSFFloat(float(np.random.uniform(0,1,1)))
+                    # Set the new color
+                    robot.getFromDef('FLOOR').getField('appearance').getSFNode().getField('colorOverride').setSFColor(list(np.random.uniform(0,1,3)))
+        
+                else:
+                    robot.getFromDef('FLOOR').getField('appearance').getSFNode().getField('IBLStrength').setSFFloat(0.)
+
+        if change_lights:
+            if it_idx % change_lights_every == 0 and frame_n != 0:
+                for light_name in lights.keys():
+                    light_node = lights[light_name]['node']
+                
+                    # Switch on or off
+                    if np.random.uniform(0,1,1) >= on_threshold:
+                        # Turn light on
+                        light_node.getField('on').setSFBool(True)
+                        # Module intensity
+                        new_intensity = np.random.uniform(*intensity_limits, 1)
+                        light_node.getField('intensity').setSFFloat(float(new_intensity))
+                        # Random colors
+                        if np.random.uniform(0,1,1) >= random_color_threshold:
+                            # Set random colors
+                            rand_colors = list(np.random.uniform(0,1,3)) # RGB
+                            light_node.getField('color').setSFColor(rand_colors)
+                        else:
+                            # White light
+                            light_node.getField('color').setSFColor([1,1,1])
+                    else:
+                        light_node.getField('on').setSFBool(False)
 
         ########### ------------------ FLAGS ------------------ ###########
-
-
-        ########### ------------------ CORNERS - GROUND TRUTH ------------------ ###########
-
-        # Gate
-        translation_gate = gate_node.getField('translation').getSFVec3f()
-        gate_center = gate_node.getField('children').getMFNode(4).getField('translation').getSFVec3f()
-        gate_rot = gate_node.getField('rotation').getSFRotation()
-
-        # Gate pose. This is used to transform the gate points.
-        T_G = SE3(translation_gate)*SE3(transforms3d.axangles.axangle2aff(gate_rot[:-1], gate_rot[-1]))
-
-        br = gate_node.getField('children').getMFNode(0).getField('translation').getSFVec3f()
-        bl = gate_node.getField('children').getMFNode(1).getField('translation').getSFVec3f()
-        tl = gate_node.getField('children').getMFNode(2).getField('translation').getSFVec3f()
-        tr = gate_node.getField('children').getMFNode(3).getField('translation').getSFVec3f()
-
-
-        # Rotate gate points. Transform in homogenous coordinates, perform the matmul, and then pick the first three entries.
-        tl = (np.array(T_G)@np.append(tl, 1))[:-1]
-        bl = (np.array(T_G)@np.append(bl, 1))[:-1]
-        br = (np.array(T_G)@np.append(br, 1))[:-1]
-        tr = (np.array(T_G)@np.append(tr, 1))[:-1]
-
-        P = np.array([
-            tl, bl, br, tr
-        ]).T
-
-        rotation_matrix_world_drone = rotation.rotation_matrix(roll, pitch, yaw)
-        wd_tr = np.array([x_global, y_global, z_global])
-        extrinsic_matrix_world_drone = rotation.get_extrinsic_matrix(rotation_matrix_world_drone, translation_vector=wd_tr)
-        
-        rotation_matrix_drone_camera = rotation.rotation_matrix(roll=-np.pi/2, pitch=0, yaw=-np.pi/2)
-        dc_tr = camera_drone_tr
-        extrinsic_matrix_drone_camera = rotation.get_extrinsic_matrix(rotation_matrix_drone_camera, translation_vector=dc_tr)
-
-        extrinsic_matrix = extrinsic_matrix_world_drone@extrinsic_matrix_drone_camera
-
-        # It raises problems
-        # T_C = SE3(wd_tr)*SE3.RPY(roll,pitch,yaw)*SE3(dc_tr)*SE3.RPY(-np.pi/2, 0, -np.pi/2)
-        # With mine it works
-        T_C = extrinsic_matrix
-        # Ground truth projected into the image space
-        GT_p_detected = cam.project_point(P, pose=SE3(T_C, check=False))
-        # print(GT_p_detected)
-        
-        ########### ------------------ CORNERS - GROUND TRUTH ------------------ ###########
-        
-        
-        ########### ------------------ CAMERA IMAGES -------------------- ########### 
-
-        w, h = camera.getWidth(), camera.getHeight()
-        cameraData = camera.getImage()  # Note: uint8 string
-        segData = camera.getRecognitionSegmentationImage() # Segmentation image
-
-        image = np.frombuffer(cameraData, np.uint8).reshape(h, w, 4) # BGR, alpha (transparency)
-        seg = np.frombuffer(segData, np.uint8).reshape(h, w, 4)
-
-        cam_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) # gray-scale image
-        
-        w, h = range_finder_full.getWidth(), range_finder_full.getHeight()
-        rangeData = range_finder_full.getRangeImage(data_type="list")
-        range_image_full = np.array(rangeData, np.float32).reshape(h, w)
-
-        ########### ------------------ CAMERA IMAGES -------------------- ########### 
-
-
-        ########### ------------------ SAVING THINGS -------------------- ###########
-
-        # Check whether if the ground truths are present in the image. If yes save everything
-        if np.isnan(GT_p_detected).sum() == 0 and np.min(GT_p_detected) >= 0 and np.max(GT_p_detected) < img_size[0]:
-            # gt_img = np.zeros_like(image)
-            # # Show image
-            # for id, col in enumerate(colors):
-            #     v, u = GT_p_detected[:,id] # Ground truth into image space
-            #     image = cv2.circle(image, (int(v),int(u)), radius=int(np.round(0.05*320,0)), color=(255, 255, 255), thickness=-1)
-            #     # gt_img = cv2.circle(gt_img, (int(v),int(u)), radius=int(np.round(0.05*320,0)), color=(255, 255, 255), thickness=-1)
-            #     gt_img = cv2.circle(gt_img, (int(v),int(u)), radius=10, color=(255, 255, 255), thickness=-1)
-            #     # gt_img = cv2.blur(gt_img, (7,7))
-            #     gt_img = scipy.ndimage.gaussian_filter(gt_img, sigma=1)
-            #     # image = cv2.putText(image, text=str(id), org = (int(x),int(y)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.5, color = (255,255,255), thickness = 1)
-            
-            # # Resize for the ground truth
-            # image = cv2.resize(gt_img, (20,20))
-        
-            if collect_data:
-                # # Save the image
-                # cv2.imwrite(f"{gt_imgs_folder}"+f'/img_{frame_n}.png', cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
-                
-                # To be coherent with the drone orientation, transform the axangle orientation into roll, pitch and yaw
-                gate_axangle = gate_node.getField('rotation').getSFRotation()[:-1], gate_node.getField('rotation').getSFRotation()[-1]
-                gate_rpy = transforms3d.euler.axangle2euler(gate_axangle[0], gate_axangle[-1])
-
-                # Save the data
-                sample["sample_n"] = frame_n
-                sample['image'] = cam_img
-                sample['h'], sample['w'] = img_size
-                sample['c'] = 1 # Gray-scale images
-                sample['gate'] = {'position':gate_node.getField('translation').getSFVec3f(), 
-                                'orientation':list(gate_rpy)}
-                sample["drone"] = {'position':gps.getValues(),
-                                'orientation': imu.getRollPitchYaw(),}
-                sample['GT_3D_space'] = P
-                sample['GT_image_space'] = GT_p_detected
-                
-                # rec_objects = []
-                # 
-                # # Store info about objects recognized by the camera
-                # for rec_obj in camera.getRecognitionObjects():
-                #     # https://www.cyberbotics.com/doc/reference/camera?tab-language=python#camera-recognition-object
-                #     obj = {	
-                #     "w_id": rec_obj.getId(),
-                #     "camera_p": rec_obj.getPosition(),
-                #     "camera_o": rec_obj.getOrientation(),
-                #     "camera_size": rec_obj.getSize(),
-                #     "image_p": rec_obj.getPositionOnImage(),
-                #     "image_size": rec_obj.getSizeOnImage(),
-                #     "name": robot.getFromId(rec_obj.getId()).getField('name').getSFString()
-                #     }
-                #     rec_objects.append(obj)
-                # sample["rec_objects"] = rec_objects
-                samples.append(sample)
-
-                path = f"{imgs_folder}/img_{frame_n}.png"
-                cv2.imwrite(path, cam_img)
-                path = f"{imgs_folder}/seg_{frame_n}.png"
-                cv2.imwrite(path, seg)
-                
-                # r_i = []
-                # for els in range_image:
-                #     r_i_row = []
-                #     for el in els:
-                #         if el == float('inf'):
-                #             el = 4.0
-                #         
-                #         r_i_row.append(int(el*255/4.0))
-                #     r_i.append(r_i_row)
-                # cv2.imwrite(path, np.asarray(r_i, dtype=np.uint8))
-
-                path = f"{imgs_folder}" + f"range_full_{frame_n}.png"
-                np.save(path, range_image_full)
-            
-            # Increase the counter of the correct frames
-            frame_n += 1
-        
-        ########### ------------------ SAVING THINGS -------------------- ########### 
-
 
         ########### ------------------ NEW DRONE SPAWN POINT ------------------ ###########
 
@@ -640,9 +738,10 @@ if __name__ == '__main__':
         # Consider x and y as a cilinder. I don't want that the drone can bu underneath the gate centre
         x = x0 + r*np.cos(phi)
         y = y0 + r*np.sin(phi)
-        z = z0 + r*np.cos(theta)
+        # z = z0 + r*np.cos(theta)
 
-        z = np.clip(z, z_limits[0], z_limits[1])
+        # z = np.clip(z, z_limits[0], z_limits[1])
+        z = np.random.uniform(*z_limits, 1)[0]
         
         point = np.array([x,y,z])
 
@@ -675,6 +774,7 @@ if __name__ == '__main__':
         # print(f'Percentage of correct images: {100*(frame_n/it_idx):.2f}')
     
         print(it_idx, frame_n)
+
     ########### ------------------ SAVING THINGS -------------------- ###########
 
     if collect_data:
