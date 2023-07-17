@@ -291,8 +291,8 @@ DEF CRAZYFLIE Robot {
         }
       ]
       fieldOfView 1.52
-      width 320
-      height 320
+      width 160
+      height 160
       focus Focus {
         focalLength 0.0006
       }

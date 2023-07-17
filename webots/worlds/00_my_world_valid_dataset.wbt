@@ -68,7 +68,7 @@ DEF BACKGROUND TexturedBackground {
   texture "factory"
   skybox FALSE
   skyColor [
-    0.3 1 1
+    0.5488135039273248 0.7151893663724195 0.6027633760716439
   ]
 }
 TexturedBackgroundLight {
@@ -213,7 +213,7 @@ DEF GATE Solid {
         }
         DEF SHAPE Shape {
           appearance PBRAppearance {
-            baseColor 1 0.8 0.6
+            baseColor 0.2653894909394454 0.2653894909394454 0.2653894909394454
             baseColorMap ImageTexture {
               url [
                 "/home/losca/Documents/University/Thesis/crazyflie-webots/webots/simulations/textures/GateTex_orange.png"
