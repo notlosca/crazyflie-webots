@@ -243,7 +243,7 @@ if __name__ == '__main__':
     
     # Load the NN model
     path_to_append = '/home/losca/Documents/University/Thesis/scarciglia-nanodrone-gate-detection/PyTorch/Frontnet/'
-    filename = '/home/losca/Documents/University/Thesis/scarciglia-nanodrone-gate-detection/PyTorch/Models/160x32/04_train/Frontnet.pt' # 03_train validation w/o lights, 02 w/ lights
+    filename = '/home/losca/Documents/University/Thesis/scarciglia-nanodrone-gate-detection/PyTorch/Models/160x32/05_train/160x32/Frontnet.pt' # 03_train validation w/o lights, 02 w/ lights
 
     model = cnn.load_model(path_to_append, filename)
     
@@ -255,7 +255,8 @@ if __name__ == '__main__':
     cam = mvtb.CentralCamera(rho=pixel_size[0], imagesize=img_size, f=f)
 
     # Depth value
-    Z = 0.34
+    # Z = 0.34
+    Z = 0.1
 
     # Desired positions
     wide = 100 # square 100px wide in the center of the camera frame
@@ -631,6 +632,7 @@ if __name__ == '__main__':
                 break
                 
             ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z = v_drone
+            print(v_drone)
             if use_GT:
                 forward_desired = GT_ibvs_v_x
                 sideways_desired = GT_ibvs_v_y
