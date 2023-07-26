@@ -7,8 +7,8 @@ WorldInfo {
 }
 Viewpoint {
   fieldOfView 0.9
-  orientation -0.2400304286191098 0.5641191154578303 0.7900348200630158 0.9196091634789473
-  position -2.6025597010328907 -2.8060052693360937 2.7518565843261187
+  orientation -0.2780848317253483 0.13058276774395125 0.9516390950001024 2.245079249655826
+  position 1.4305878419117977 -3.7824192003027295 1.9637310429015586
   followType "Mounted Shot"
   followSmoothness 0.1
 }
@@ -195,7 +195,6 @@ DEF GATE Solid {
         }
         DEF SHAPE Shape {
           appearance PBRAppearance {
-            baseColor 0 0 0
             baseColorMap ImageTexture {
               url [
                 "/home/losca/Documents/University/Thesis/crazyflie-webots/webots/simulations/textures/GateTex_orange.png"
@@ -234,8 +233,8 @@ DEF GATE Solid {
   name "imav2022-gate(1)"
 }
 DEF CRAZYFLIE Robot {
-  translation 0.68 -1.17 0.05
-  rotation 5.44771e-12 -1.45454e-12 1 2.0944
+  translation 1 -2.5 0.05
+  rotation 0 0 1 1.83
   children [
     RangeFinder {
       translation 0.03 0 0.01
@@ -493,7 +492,7 @@ DEF CRAZYFLIE Robot {
     density -1
     mass 0.05
   }
-  controller "drone_controller_py_tests"
+  controller "drone_controller_py_tests_160x160"
   supervisor TRUE
 }
 DEF Cyberzoo Transform {
@@ -15470,7 +15469,7 @@ DEF Objects Group {
                   appearance PBRAppearance {
                     baseColorMap ImageTexture {
                       url [
-                        "textures/textured_panel_3m/flat/white_flat.png"
+                        "textures/textured_panel_3m/laboratory/wall_window.png"
                       ]
                     }
                     roughness 1
@@ -16300,7 +16299,7 @@ DEF Objects Group {
                   appearance PBRAppearance {
                     baseColorMap ImageTexture {
                       url [
-                        "textures/textured_panel_3m/flat/white_flat.png"
+                        "textures/textured_panel_3m/laboratory/wall_tv.png"
                       ]
                     }
                     roughness 1
@@ -17130,7 +17129,7 @@ DEF Objects Group {
                   appearance PBRAppearance {
                     baseColorMap ImageTexture {
                       url [
-                        "textures/textured_panel_3m/flat/white_flat.png"
+                        "textures/textured_panel_3m/laboratory/wall_desks.png"
                       ]
                     }
                     roughness 1
@@ -17960,7 +17959,7 @@ DEF Objects Group {
                   appearance PBRAppearance {
                     baseColorMap ImageTexture {
                       url [
-                        "textures/textured_panel_3m/flat/white_flat.png"
+                        "textures/textured_panel_3m/laboratory/wall_board.png"
                       ]
                     }
                     roughness 1
@@ -18788,10 +18787,10 @@ DEF Objects Group {
                 }
                 Shape {
                   appearance PBRAppearance {
-                    baseColor 0.8 0.7 0.3
+                    baseColor 0.5 0.5 0.5
                     baseColorMap ImageTexture {
                       url [
-                        "textures/textured_panel_3m/flat/white_flat.png"
+                        "textures/textured_panel_3m/laboratory/floor_0.png"
                       ]
                     }
                     roughness 1

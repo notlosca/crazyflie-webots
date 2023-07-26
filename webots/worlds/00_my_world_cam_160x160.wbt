@@ -34,139 +34,139 @@ TexturedBackgroundLight {
 DEF GATE Solid {
   rotation 0 1 0 0
   children [
-    Robot {
-      translation 0.2 -0.05 0.8
-      children [
-        GPS {
-          children [
-            Solid {
-              scale 0.2 0.2 0.2
-              children [
-                Shape {
-                  appearance PBRAppearance {
-                    baseColor 0 1 0
-                    transparency 1
-                    roughness 1
-                  }
-                  geometry Sphere {
-                    radius 0.1
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-      name "sensor_br"
-      controller "gate_corner_position_controller"
-    }
-    Robot {
-      translation -0.2 -0.05 0.8
-      children [
-        GPS {
-          children [
-            Solid {
-              scale 0.2 0.2 0.2
-              children [
-                Shape {
-                  appearance PBRAppearance {
-                    baseColor 0 1 0
-                    transparency 1
-                    roughness 1
-                  }
-                  geometry Sphere {
-                    radius 0.1
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-      name "sensor_bl"
-      controller "gate_corner_position_controller"
-    }
-    Robot {
-      translation -0.2 -0.05 1.2
-      children [
-        GPS {
-          children [
-            Solid {
-              scale 0.2 0.2 0.2
-              children [
-                Shape {
-                  appearance PBRAppearance {
-                    baseColor 0 1 0
-                    transparency 1
-                    roughness 1
-                  }
-                  geometry Sphere {
-                    radius 0.1
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-      name "sensor_tl"
-      controller "gate_corner_position_controller"
-    }
-    Robot {
-      translation 0.2 -0.05 1.2
-      children [
-        GPS {
-          children [
-            Solid {
-              scale 0.2 0.2 0.2
-              children [
-                Shape {
-                  appearance PBRAppearance {
-                    baseColor 0 1 0
-                    transparency 1
-                    roughness 1
-                  }
-                  geometry Sphere {
-                    radius 0.1
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-      name "sensor_tr"
-      controller "gate_corner_position_controller"
-    }
-    Robot {
-      translation 0 -0.05 1
-      children [
-        GPS {
-          children [
-            Solid {
-              scale 0.2 0.2 0.2
-              children [
-                Shape {
-                  appearance PBRAppearance {
-                    baseColor 1 0 1
-                    transparency 1
-                    roughness 1
-                  }
-                  geometry Sphere {
-                    radius 0.1
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-      name "sensor_gate-center"
-      controller "gate_corner_position_controller"
-    }
     Solid {
       rotation 0 1 0 0
       children [
+        Robot {
+          translation 0.2 -0.05 0.8
+          children [
+            GPS {
+              children [
+                Solid {
+                  scale 0.2 0.2 0.2
+                  children [
+                    Shape {
+                      appearance PBRAppearance {
+                        baseColor 0 1 0
+                        transparency 1
+                        roughness 1
+                      }
+                      geometry Sphere {
+                        radius 0.1
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          name "sensor_br"
+          controller "gate_corner_position_controller"
+        }
+        Robot {
+          translation -0.2 -0.05 0.8
+          children [
+            GPS {
+              children [
+                Solid {
+                  scale 0.2 0.2 0.2
+                  children [
+                    Shape {
+                      appearance PBRAppearance {
+                        baseColor 0 1 0
+                        transparency 1
+                        roughness 1
+                      }
+                      geometry Sphere {
+                        radius 0.1
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          name "sensor_bl"
+          controller "gate_corner_position_controller"
+        }
+        Robot {
+          translation -0.2 -0.05 1.2
+          children [
+            GPS {
+              children [
+                Solid {
+                  scale 0.2 0.2 0.2
+                  children [
+                    Shape {
+                      appearance PBRAppearance {
+                        baseColor 0 1 0
+                        transparency 1
+                        roughness 1
+                      }
+                      geometry Sphere {
+                        radius 0.1
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          name "sensor_tl"
+          controller "gate_corner_position_controller"
+        }
+        Robot {
+          translation 0.2 -0.05 1.2
+          children [
+            GPS {
+              children [
+                Solid {
+                  scale 0.2 0.2 0.2
+                  children [
+                    Shape {
+                      appearance PBRAppearance {
+                        baseColor 0 1 0
+                        transparency 1
+                        roughness 1
+                      }
+                      geometry Sphere {
+                        radius 0.1
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          name "sensor_tr"
+          controller "gate_corner_position_controller"
+        }
+        Robot {
+          translation 0 -0.05 1
+          children [
+            GPS {
+              children [
+                Solid {
+                  scale 0.2 0.2 0.2
+                  children [
+                    Shape {
+                      appearance PBRAppearance {
+                        baseColor 1 0 1
+                        transparency 1
+                        roughness 1
+                      }
+                      geometry Sphere {
+                        radius 0.1
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+          name "sensor_gate-center"
+          controller "gate_corner_position_controller"
+        }
         DEF SHAPE Shape {
           appearance PBRAppearance {
             baseColor 1 0.8 0.6
@@ -208,8 +208,8 @@ DEF GATE Solid {
   name "imav2022-gate"
 }
 DEF CRAZYFLIE Robot {
-  translation 0.606834 -1.71229 0.015
-  rotation 0 0 1 2.0944
+  translation 1 -2.5 0.015
+  rotation 0 0 1 1.83
   children [
     DEF Multiranger Transform {
       translation 0 0 0.02
@@ -457,11 +457,11 @@ DEF CRAZYFLIE Robot {
     density -1
     mass 0.05
   }
-  controller "<none>"
+  controller "drone_controller_py_tests_160x160"
   supervisor TRUE
 }
 DEF CRAZYFLIE Robot {
-  translation 0.126614 -2.04729 0.015
+  translation -1.24339 -2.04729 0.015
   rotation 0 0 -1 -1.5708053071795867
   children [
     DEF Multiranger Transform {
@@ -710,7 +710,7 @@ DEF CRAZYFLIE Robot {
     density -1
     mass 0.05
   }
-  controller "drone_controller_py_tests"
+  controller "<none>"
   supervisor TRUE
 }
 Robot {
