@@ -35,20 +35,32 @@ from pid_controller import pid_velocity_fixed_height_controller
 
 FLYING_ATTITUDE = 1
 np.random.seed(0)
+
 ########### ------------------ TEST PARAM ------------------ ###########
-smooth_velocity = {'flag':True, 'alpha':0.1}
+
+filter_predictions = False
+
+if filter_predictions:
+    filter = {'alpha':0.1, 'order':1}
+else:
+    filter = {'alpha':1, 'order':1}
+
+
+smooth_velocity = {'flag':False, 'alpha':0.1}
+
+########### ------------------ TEST PARAM ------------------ ###########
+
 use_GT = False
-########### ------------------ TEST PARAM ------------------ ###########
 
 ########### ------------------ SAVING THINGS -------------------- ###########
     
 # Set to True if you want to collect data
-collect_data = False
+collect_data = True
 
 if collect_data:
         
-    parent_folder = '../../datasets/EXP-6-IBVS_SMOOTH_START'
-    folder = parent_folder +'/tests_elia/'+ '04_corner_det_test_no_filter_allsmooth_10percsmooth'
+    parent_folder = '../../datasets/IBVS-RUN/laboratory/'
+    folder = parent_folder+ 'GT_ibvs_err_thresh'
 
     imgs_folder = f'{folder}/imgs/'
     imgs_ibvs_folder = f'{folder}/imgs_ibvs/'
@@ -129,11 +141,11 @@ if __name__ == '__main__':
     crazyflie_node = robot.getFromDef("CRAZYFLIE")
     translation_drone = crazyflie_node.getField('translation')
     rotation_drone = crazyflie_node.getField('rotation')
-    camera_node = crazyflie_node.getField('children').getMFNode(1)
+    camera_node = crazyflie_node.getField('children').getMFNode(2) # PAY ATTENTION!!!
     camera_drone_tr = camera_node.getField('translation').getSFVec3f()
 
     # Gate
-    gate_node = robot.getFromDef("GATE").getField('children').getMFNode(0)
+    gate_node = robot.getFromDef("GATE")# .getField('children').getMFNode(0)
     translation_gate = gate_node.getField('translation').getSFVec3f()
     gate_center = gate_node.getField('children').getMFNode(4).getField('translation').getSFVec3f()
     gate_rot = gate_node.getField('rotation').getSFRotation()
@@ -190,7 +202,7 @@ if __name__ == '__main__':
     tasks['order'] = ['take_off', 'visual_servoing', 'cross_the_gate', 'land']
 
     take_off = True
-    take_off_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':0.0, 'position.z':1, 'attitudeRate.yaw':0.0}}
+    take_off_info = {'setpoints': {'velocity.x':0.0, 'velocity.y':0.0, 'position.z':.5, 'attitudeRate.yaw':0.0}}
     tasks['take_off'] = take_off_info
 
     visual_servoing = False
@@ -199,7 +211,7 @@ if __name__ == '__main__':
     GT_detection = np.zeros(shape=(3,2,4))
     detections = []
     GT_detections = []
-    filter = {'alpha':0.1, 'order':1}
+    # filter = {'alpha':0.1, 'order':1}
     vs_counter = 0
     ibvs_v_xs = np.zeros(shape=(2,1))
     ibvs_v_ys = np.zeros(shape=(2,1))
@@ -238,28 +250,21 @@ if __name__ == '__main__':
 
     colors = ['r', 'b', 'g', 'y']
     
-    print(os.getcwd())
-    print(sys.path)
-    
-    # Load the NN model
-    path_to_append = '/home/losca/Documents/University/Thesis/scarciglia-nanodrone-gate-detection/PyTorch/Frontnet/'
-    filename = '/home/losca/Documents/University/Thesis/scarciglia-nanodrone-gate-detection/PyTorch/Models/160x32/05_train/160x32/Frontnet.pt' # 03_train validation w/o lights, 02 w/ lights
-
-    model = cnn.load_model(path_to_append, filename)
+    # print(os.getcwd())
+    # print(sys.path)
     
     ########### ------------------ VISUAL SERVOING ------------------ ###########
     
     f = 0.0006
     pixel_size = (3.6e-6, 3.6e-6)
-    img_size = (160,160)
+    img_size = (320,320)
     cam = mvtb.CentralCamera(rho=pixel_size[0], imagesize=img_size, f=f)
 
     # Depth value
-    # Z = 0.34
-    Z = 0.1
+    Z = 0.34
 
     # Desired positions
-    wide = 100 # square 100px wide in the center of the camera frame
+    wide = 200 # square 100px wide in the center of the camera frame
     pd = np.array([[cam.pp[0] - wide/2, cam.pp[1] - wide/2], # TL is the 1st
                 [cam.pp[0] - wide/2, cam.pp[1] + wide/2], # BL is the 2nd
                 [cam.pp[0] + wide/2, cam.pp[1] + wide/2], # BR is the 3rd
@@ -461,13 +466,12 @@ if __name__ == '__main__':
             
             ########### ------------------ DETECTION VISUAL SERVOING ------------------ ###########
 
-            # current_p_detected = corner.detect_corners(img, return_drawing=False)
-            current_p_detected = corner.detect_corners_nn(img, model)
-
-            print('TL =', current_p_detected[:,0])
-            print('BL =', current_p_detected[:,1])
-            print('BR =', current_p_detected[:,2])
-            print('TR =', current_p_detected[:,3])
+            # current_p_detected, drawing = corner.detect_corners(img, blur_kernel=(3,3), canny_thresh=(50,200), method_corner_retr='highest', return_drawing=True)
+            current_p_detected = GT_p_detected
+            # print('TL =', current_p_detected[:,0])
+            # print('BL =', current_p_detected[:,1])
+            # print('BR =', current_p_detected[:,2])
+            # print('TR =', current_p_detected[:,3])
 
 
             if vs_counter == 0:
@@ -563,9 +567,9 @@ if __name__ == '__main__':
                 # stacked image Jacobian
                 J = cam.visjac_p(p_detected, Z)
 
-                # Condition number of J
-                J_det_cond = np.linalg.cond(J)
-                print('Condition number of J_detection', J_det_cond)
+                # # Condition number of J
+                # J_det_cond = np.linalg.cond(J)
+                # print('Condition number of J_detection', J_det_cond)
 
                 v_camera = lmda * np.linalg.pinv(J) @ e.T.flatten()
                 # Twist velocity from camera frame to drone frame
@@ -599,6 +603,7 @@ if __name__ == '__main__':
                     if collect_data:
                         # Save the image
                         cv2.imwrite(imgs_ibvs_folder+f'/img_{it_idx}.png', cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+                        # cv2.imwrite(imgs_ibvs_folder+f'/contours/img_{it_idx}.png', cv2.cvtColor(drawing, cv2.COLOR_BGR2GRAY))
 
                 cv2.imshow("Drone Camera", cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
                 cv2.waitKey(timestep)
@@ -607,7 +612,7 @@ if __name__ == '__main__':
 
                 print(e)    
                 
-                info['ending_step'] = it_idx
+                info['ending_step'] = it_idx - 1 # The last correct sample is the previous one
                 
                 ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z = np.full(shape=(6,), fill_value=np.nan)
                 
@@ -622,16 +627,19 @@ if __name__ == '__main__':
                 sample['ibvs_error'] = err
                 sample['GT_ibvs_error'] = GT_err
                 sample['jacobian_detection'] = J
-                sample['condition_number_J_detection'] = J_det_cond
+                # sample['condition_number_J_detection'] = J_det_cond
                 sample['jacobian_GT'] = J_GT
                 sample['condition_number_J_GT'] = J_GT_cond
                 data['IBVS'] = sample
             
                 ########### ------------------ SAVING THINGS -------------------- ###########
-
-                break
+                visual_servoing = False
+                print("Detection is failing! Emergency landing...")
+                landing = True
+                continue
                 
             ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z = v_drone
+            # ibvs_w_z = 0
             print(v_drone)
             if use_GT:
                 forward_desired = GT_ibvs_v_x
@@ -707,7 +715,7 @@ if __name__ == '__main__':
             sample['ibvs_error'] = err
             sample['GT_ibvs_error'] = GT_err
             sample['jacobian_detection'] = J
-            sample['condition_number_J_detection'] = J_det_cond
+            # sample['condition_number_J_detection'] = J_det_cond
             sample['jacobian_GT'] = J_GT
             sample['condition_number_J_GT'] = J_GT_cond
             data['IBVS'] = sample
