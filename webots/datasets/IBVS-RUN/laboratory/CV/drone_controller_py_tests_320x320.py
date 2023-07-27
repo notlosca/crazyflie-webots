@@ -141,7 +141,7 @@ if __name__ == '__main__':
     crazyflie_node = robot.getFromDef("CRAZYFLIE")
     translation_drone = crazyflie_node.getField('translation')
     rotation_drone = crazyflie_node.getField('rotation')
-    camera_node = crazyflie_node.getField('children').getMFNode(1)
+    camera_node = crazyflie_node.getField('children').getMFNode(2)
     camera_drone_tr = camera_node.getField('translation').getSFVec3f()
 
     # Gate
@@ -262,7 +262,6 @@ if __name__ == '__main__':
 
     # Depth value
     Z = 0.34
-    # Z = 0.1
 
     # Desired positions
     wide = 200 # square 100px wide in the center of the camera frame
@@ -613,7 +612,7 @@ if __name__ == '__main__':
 
                 print(e)    
                 
-                info['ending_step'] = it_idx
+                info['ending_step'] = it_idx - 1 # The last correct sample is the previous one
                 
                 ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z = np.full(shape=(6,), fill_value=np.nan)
                 
