@@ -451,9 +451,12 @@ if __name__ == '__main__':
             J_GT = cam.visjac_p(GT_p_detected, Z)
 
             # Condition number of J
-            J_GT_cond = np.linalg.cond(J_GT)
-            print('Condition number of J_GT', J_GT_cond)
-
+            try:
+                J_GT_cond = np.linalg.cond(J_GT)
+                print('Condition number of J_GT', J_GT_cond)
+            except:
+                print('Error in computing the condition number of J_GT')
+                continue
             v_camera = lmda * np.linalg.pinv(J_GT) @ GT_e.T.flatten()
    
             # Twist velocity from camera frame to drone frame
@@ -466,7 +469,7 @@ if __name__ == '__main__':
             
             ########### ------------------ DETECTION VISUAL SERVOING ------------------ ###########
 
-            current_p_detected, drawing = corner.detect_corners(img, blur_kernel=(3,3), canny_thresh=(50,200), method_corner_retr='highest', return_drawing=True)
+            current_p_detected, drawing = corner.detect_corners(img, blur_kernel=(3,3), canny_thresh=(50,150), method_corner_retr='highest', return_drawing=True)
             print(current_p_detected)
             # print('TL =', current_p_detected[:,0])
             # print('BL =', current_p_detected[:,1])
