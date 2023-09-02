@@ -59,7 +59,7 @@ collect_data = True
 
 if collect_data:
         
-    parent_folder = '../../datasets/IBVS-RUN/laboratory/'
+    parent_folder = '../../datasets/IBVS-RUN/empty_bg/'
     folder = parent_folder+ 'CV'
 
     imgs_folder = f'{folder}/imgs/'
@@ -141,11 +141,11 @@ if __name__ == '__main__':
     crazyflie_node = robot.getFromDef("CRAZYFLIE")
     translation_drone = crazyflie_node.getField('translation')
     rotation_drone = crazyflie_node.getField('rotation')
-    camera_node = crazyflie_node.getField('children').getMFNode(2)
+    camera_node = crazyflie_node.getField('children').getMFNode(1)
     camera_drone_tr = camera_node.getField('translation').getSFVec3f()
 
     # Gate
-    gate_node = robot.getFromDef("GATE")# .getField('children').getMFNode(0)
+    gate_node = robot.getFromDef("GATE").getField('children').getMFNode(0)
     translation_gate = gate_node.getField('translation').getSFVec3f()
     gate_center = gate_node.getField('children').getMFNode(4).getField('translation').getSFVec3f()
     gate_rot = gate_node.getField('rotation').getSFRotation()
@@ -262,6 +262,7 @@ if __name__ == '__main__':
 
     # Depth value
     Z = 0.34
+    # Z = 0.1
 
     # Desired positions
     wide = 200 # square 100px wide in the center of the camera frame
@@ -466,8 +467,8 @@ if __name__ == '__main__':
             
             ########### ------------------ DETECTION VISUAL SERVOING ------------------ ###########
 
-            current_p_detected, drawing = corner.detect_corners(img, blur_kernel=(3,3), canny_thresh=(50,200), method_corner_retr='highest', return_drawing=True)
-            print(current_p_detected)
+            current_p_detected, drawing = corner.detect_corners(img, blur_kernel=(7,7), canny_thresh=(100,200), retr_method='list', method_corner_retr='highest', return_drawing=True)
+
             # print('TL =', current_p_detected[:,0])
             # print('BL =', current_p_detected[:,1])
             # print('BR =', current_p_detected[:,2])
@@ -567,9 +568,9 @@ if __name__ == '__main__':
                 # stacked image Jacobian
                 J = cam.visjac_p(p_detected, Z)
 
-                # # Condition number of J
-                # J_det_cond = np.linalg.cond(J)
-                # print('Condition number of J_detection', J_det_cond)
+                # Condition number of J
+                J_det_cond = np.linalg.cond(J)
+                print('Condition number of J_detection', J_det_cond)
 
                 v_camera = lmda * np.linalg.pinv(J) @ e.T.flatten()
                 # Twist velocity from camera frame to drone frame
@@ -612,7 +613,7 @@ if __name__ == '__main__':
 
                 print(e)    
                 
-                info['ending_step'] = it_idx - 1 # The last correct sample is the previous one
+                info['ending_step'] = it_idx
                 
                 ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z = np.full(shape=(6,), fill_value=np.nan)
                 
@@ -627,16 +628,14 @@ if __name__ == '__main__':
                 sample['ibvs_error'] = err
                 sample['GT_ibvs_error'] = GT_err
                 sample['jacobian_detection'] = J
-                # sample['condition_number_J_detection'] = J_det_cond
+                sample['condition_number_J_detection'] = J_det_cond
                 sample['jacobian_GT'] = J_GT
                 sample['condition_number_J_GT'] = J_GT_cond
                 data['IBVS'] = sample
             
                 ########### ------------------ SAVING THINGS -------------------- ###########
-                visual_servoing = False
-                print("Detection is failing! Emergency landing...")
-                landing = True
-                continue
+
+                break
                 
             ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z = v_drone
             # ibvs_w_z = 0
@@ -715,7 +714,7 @@ if __name__ == '__main__':
             sample['ibvs_error'] = err
             sample['GT_ibvs_error'] = GT_err
             sample['jacobian_detection'] = J
-            # sample['condition_number_J_detection'] = J_det_cond
+            sample['condition_number_J_detection'] = J_det_cond
             sample['jacobian_GT'] = J_GT
             sample['condition_number_J_GT'] = J_GT_cond
             data['IBVS'] = sample
