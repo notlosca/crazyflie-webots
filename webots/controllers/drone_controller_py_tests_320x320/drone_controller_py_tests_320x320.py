@@ -55,12 +55,13 @@ use_GT = False
 ########### ------------------ SAVING THINGS -------------------- ###########
     
 # Set to True if you want to collect data
-collect_data = True
+collect_data = False
+testrun = 0
 
 if collect_data:
         
-    parent_folder = '../../datasets/IBVS-RUN/empty_bg/'
-    folder = parent_folder+ 'CV'
+    parent_folder = '../../datasets/IBVS-MULTIPLE-RUNS/competition/'
+    folder = parent_folder+ f'CV/run_{testrun}/'
 
     imgs_folder = f'{folder}/imgs/'
     imgs_ibvs_folder = f'{folder}/imgs_ibvs/'
@@ -167,7 +168,7 @@ if __name__ == '__main__':
     P = np.array([
         tl, bl, br, tr
     ]).T
-    print('Gate data (br, bl, tl, tr, gate_center, translation_gate):', br, bl, tl, tr, gate_center, translation_gate)
+    # print('Gate data (br, bl, tl, tr, gate_center, translation_gate):', br, bl, tl, tr, gate_center, translation_gate)
 
     ## Initialize variables
 
@@ -178,7 +179,7 @@ if __name__ == '__main__':
     # Crazyflie velocity PID controller
     PID_CF = pid_velocity_fixed_height_controller()
     PID_update_last_time = robot.getTime()
-    sensor_read_last_time = robot.getTime()
+    sensor_read_last_t1ime = robot.getTime()
     
     # Velocity PID control (converted from Crazyflie c code)
     # Original ones
@@ -272,7 +273,7 @@ if __name__ == '__main__':
                 [cam.pp[0] + wide/2, cam.pp[1] - wide/2]])# TR is the 4th
     pd = pd.T # set the x and y coordinates by column
 
-    print(f'[POINTS DESIRED]\n{pd}')
+    # print(f'[POINTS DESIRED]\n{pd}')
 
     lmda = 0.08
     # lmda = 0.5
@@ -284,7 +285,7 @@ if __name__ == '__main__':
     ########### ------------------ VISUAL SERVOING ------------------ ###########
 
     ########### ------------------ SAVING THINGS ------------------ ###########
-    
+
     dataset['drone'] = {'starting_position': crazyflie_node.getField('translation').getSFVec3f(),
                         'starting_rotation': crazyflie_node.getField('rotation').getSFRotation(),
                         'camera_drone_tr': camera_node.getField('translation').getSFVec3f()}
@@ -306,6 +307,15 @@ if __name__ == '__main__':
     starting_altitude = None
     
     it_idx = 0 # Iteration index
+    
+    ########### ------------------ DRONE SPAWN ------------------ ###########
+    x = 0.9; y = -1.73; z = 0.015
+    y = -1.87; x = 0.68
+    axangle = [0,0,-1,-1.96]
+    axangle = [0,0,1,2.09]
+    translation_drone.setSFVec3f([x,y,z])
+    rotation_drone.setSFRotation(axangle)
+    ########### ------------------ DRONE SPAWN ------------------ ###########
     
     print("Take off!")
     
@@ -369,7 +379,7 @@ if __name__ == '__main__':
             isclose = np.isclose(z_global, info['setpoints']['position.z'], rtol=1e-2)
             if isclose and prev_step:
                 if prev_step:
-                    print('Hovering...')
+                    # print('Hovering...')
                     hovering += 1
                     prev_step = isclose
                     if hovering >= hovering_steps:
@@ -421,6 +431,15 @@ if __name__ == '__main__':
                        
             T_C = SE3(wd_tr)*SE3.RPY(roll,pitch,yaw)*SE3(dc_tr)*SE3.RPY(-np.pi/2, 0, -np.pi/2)
             GT_p_detected = cam.project_point(P, pose=SE3(T_C, check=False)) 
+            ########### ------------------ LANDING ------------------ ###########
+            max_GT = GT_p_detected.max()
+            min_GT = GT_p_detected.min()
+            print(min_GT,max_GT, h)
+            if max_GT > h or min_GT < 0:
+                visual_servoing = False
+                landing = True
+                print("GT are outside the image! Landing is starting...")
+            ########### ------------------ LANDING ------------------ ###########
             current_p_detected = GT_p_detected
             if vs_counter == 0:
                 GT_detection[0] = current_p_detected
@@ -442,38 +461,52 @@ if __name__ == '__main__':
                 
                 GT_e = pd - GT_p_detected
                 GT_err = np.linalg.norm(GT_e)
-            
+                
+                # stacked image Jacobian
+                J_GT = cam.visjac_p(GT_p_detected, Z)
+
+                # Condition number of J
+                J_GT_cond = np.linalg.cond(J_GT)
+                print('Condition number of J_GT', J_GT_cond)
+
+                v_camera = lmda * np.linalg.pinv(J_GT) @ GT_e.T.flatten()
+    
+                # Twist velocity from camera frame to drone frame
+                twist_drone_camera = geometry.velocity_twist_matrix(rotation_matrix_drone_camera, dc_tr)
+                
+                v_drone = twist_drone_camera@v_camera
+
             except Exception as e:
                 
                 print('GT', e)
-                            
+                print("GT cannot CONVERGE!")
 
-            # stacked image Jacobian
-            J_GT = cam.visjac_p(GT_p_detected, Z)
+                info['ending_step'] = it_idx - 1 # The last correct sample is the previous one
 
-            # Condition number of J
-            J_GT_cond = np.linalg.cond(J_GT)
-            print('Condition number of J_GT', J_GT_cond)
+                visual_servoing = False
+                print("Detection is failing! Emergency landing...")
+                landing = True
+                continue
 
-            v_camera = lmda * np.linalg.pinv(J_GT) @ GT_e.T.flatten()
-   
-            # Twist velocity from camera frame to drone frame
-            twist_drone_camera = geometry.velocity_twist_matrix(rotation_matrix_drone_camera, dc_tr)
-            
-            v_drone = twist_drone_camera@v_camera
+
             GT_ibvs_v_x, GT_ibvs_v_y, GT_ibvs_v_z, GT_ibvs_w_x, GT_ibvs_w_y, GT_ibvs_w_z = v_drone
 
             ########### ------------------ GT VISUAL SERVOING ------------------ ##########
             
             ########### ------------------ DETECTION VISUAL SERVOING ------------------ ###########
 
-            current_p_detected, drawing = corner.detect_corners(img, blur_kernel=(7,7), canny_thresh=(100,200), retr_method='list', method_corner_retr='highest', return_drawing=True)
+            current_p_detected, drawing = corner.detect_corners(img, blur_kernel=(5,5), canny_thresh=(100,200), retr_method='external', method_corner_retr='central_point', return_drawing=True)
 
             # print('TL =', current_p_detected[:,0])
             # print('BL =', current_p_detected[:,1])
             # print('BR =', current_p_detected[:,2])
             # print('TR =', current_p_detected[:,3])
-
+            
+            # if vs_counter >= 1:
+            #     print('AAAAAAAAAAAA')
+            #     print((current_p_detected - detection[0]).sum())
+            #     if abs((current_p_detected - detection[0]).sum()) > 30:
+            #         current_p_detected = detection[0]
 
             if vs_counter == 0:
                 detection[0] = current_p_detected
@@ -570,7 +603,7 @@ if __name__ == '__main__':
 
                 # Condition number of J
                 J_det_cond = np.linalg.cond(J)
-                print('Condition number of J_detection', J_det_cond)
+                # print('Condition number of J_detection', J_det_cond)
 
                 v_camera = lmda * np.linalg.pinv(J) @ e.T.flatten()
                 # Twist velocity from camera frame to drone frame
@@ -613,7 +646,8 @@ if __name__ == '__main__':
 
                 print(e)    
                 
-                info['ending_step'] = it_idx
+                info['ending_step'] = it_idx - 1 # The last correct sample is the previous one
+
                 
                 ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z = np.full(shape=(6,), fill_value=np.nan)
                 
@@ -635,11 +669,14 @@ if __name__ == '__main__':
             
                 ########### ------------------ SAVING THINGS -------------------- ###########
 
-                break
+                visual_servoing = False
+                print("Detection is failing! Emergency landing...")
+                landing = True
+                continue
                 
             ibvs_v_x, ibvs_v_y, ibvs_v_z, ibvs_w_x, ibvs_w_y, ibvs_w_z = v_drone
             # ibvs_w_z = 0
-            print(v_drone)
+            # print(v_drone)
             if use_GT:
                 forward_desired = GT_ibvs_v_x
                 sideways_desired = GT_ibvs_v_y

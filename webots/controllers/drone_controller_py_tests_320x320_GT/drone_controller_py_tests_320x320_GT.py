@@ -55,12 +55,13 @@ use_GT = False
 ########### ------------------ SAVING THINGS -------------------- ###########
     
 # Set to True if you want to collect data
-collect_data = True
+collect_data = False
+testrun = 0
 
 if collect_data:
         
-    parent_folder = '../../datasets/IBVS-RUN/laboratory/'
-    folder = parent_folder+ 'GT_ibvs_err_thresh'
+    parent_folder = '../../datasets/IBVS-MULTIPLE-RUNS/laboratory/'
+    folder = parent_folder+ f'GT_ibvs_err_thresh/run_{testrun}'
 
     imgs_folder = f'{folder}/imgs/'
     imgs_ibvs_folder = f'{folder}/imgs_ibvs/'
@@ -143,9 +144,10 @@ if __name__ == '__main__':
     rotation_drone = crazyflie_node.getField('rotation')
     camera_node = crazyflie_node.getField('children').getMFNode(2) # PAY ATTENTION!!!
     camera_drone_tr = camera_node.getField('translation').getSFVec3f()
-
+    # print(camera_drone_tr)
+    
     # Gate
-    gate_node = robot.getFromDef("GATE")# .getField('children').getMFNode(0)
+    gate_node = robot.getFromDef("GATE")    .getField('children').getMFNode(0)
     translation_gate = gate_node.getField('translation').getSFVec3f()
     gate_center = gate_node.getField('children').getMFNode(4).getField('translation').getSFVec3f()
     gate_rot = gate_node.getField('rotation').getSFRotation()
@@ -305,7 +307,16 @@ if __name__ == '__main__':
     starting_altitude = None
     
     it_idx = 0 # Iteration index
-    
+
+    ########### ------------------ DRONE SPAWN ------------------ ###########
+    # x = 0.9; y = -1.73; z = 0.015
+    y = -1.87; x = 0.68; z = 0.015
+    # axangle = [0,0,-1,-1.96]
+    axangle = [0,0,1,2.09]
+    translation_drone.setSFVec3f([x,y,z])
+    rotation_drone.setSFRotation(axangle)
+    ########### ------------------ DRONE SPAWN ------------------ ###########
+
     print("Take off!")
     
     # Main loop:

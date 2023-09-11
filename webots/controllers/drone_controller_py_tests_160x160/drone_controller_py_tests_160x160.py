@@ -60,11 +60,12 @@ use_GT = False
     
 # Set to True if you want to collect data
 collect_data = True
+testrun = 0
 
 if collect_data:
         
-    parent_folder = '../../datasets/IBVS-RUN/laboratory/'
-    folder = parent_folder+ f'CNN'
+    parent_folder = '../../datasets/IBVS-MULTIPLE-RUNS/competition/'
+    folder = parent_folder+ f'DL/run_{testrun}'
 
     imgs_folder = f'{folder}/imgs/'
     imgs_ibvs_folder = f'{folder}/imgs_ibvs/'
@@ -306,6 +307,15 @@ if __name__ == '__main__':
     
     ########### ------------------ SAVING THINGS ------------------ ###########
 
+    ########### ------------------ DRONE SPAWN ------------------ ###########
+    x = 0.9; y = -1.73; z = 0.015
+    y = -1.87; x = 0.68
+    axangle = [0,0,-1,-1.96]
+    axangle = [0,0,1,2.09]
+    translation_drone.setSFVec3f([x,y,z])
+    rotation_drone.setSFRotation(axangle)
+    ########### ------------------ DRONE SPAWN ------------------ ###########
+    
     height_desired = take_off_info['setpoints']['position.z']
 
     ## Initialize values
@@ -316,7 +326,17 @@ if __name__ == '__main__':
     starting_altitude = None
     
     it_idx = 0 # Iteration index
-    
+
+    ########### ------------------ DRONE SPAWN ------------------ ###########
+    # x = 0.9; y = -1.73; z = 0.015
+    y = -1.87; x = 0.68; z = 0.015
+    # axangle = [0,0,-1,-1.96]
+    axangle = [0,0,1,2.09]
+    translation_drone.setSFVec3f([x,y,z])
+    rotation_drone.setSFRotation(axangle)
+    ########### ------------------ DRONE SPAWN ------------------ ###########
+
+
     print("Take off!")
     
     # Main loop:
@@ -431,6 +451,15 @@ if __name__ == '__main__':
                        
             T_C = SE3(wd_tr)*SE3.RPY(roll,pitch,yaw)*SE3(dc_tr)*SE3.RPY(-np.pi/2, 0, -np.pi/2)
             GT_p_detected = cam.project_point(P, pose=SE3(T_C, check=False)) 
+            ########### ------------------ LANDING ------------------ ###########
+            max_GT = GT_p_detected.max()
+            min_GT = GT_p_detected.min()
+            print(min_GT,max_GT, h)
+            if max_GT > h or min_GT < 0:
+                visual_servoing = False
+                landing = True
+                print("GT are outside the image! Landing is starting...")
+            ########### ------------------ LANDING ------------------ ###########
             current_p_detected = GT_p_detected
             if vs_counter == 0:
                 GT_detection[0] = current_p_detected
@@ -452,28 +481,33 @@ if __name__ == '__main__':
                 
                 GT_e = pd - GT_p_detected
                 GT_err = np.linalg.norm(GT_e)
-            
-            except Exception as e:
                 
-                print('GT', e)
-                            
+                # stacked image Jacobian
+                J_GT = cam.visjac_p(GT_p_detected, Z)
 
-            # stacked image Jacobian
-            J_GT = cam.visjac_p(GT_p_detected, Z)
-
-            try:
                 # Condition number of J
                 J_GT_cond = np.linalg.cond(J_GT)
                 print('Condition number of J_GT', J_GT_cond)
-            except:
-                print("Error in computing the condition number of J_GT")
 
-            v_camera = lmda * np.linalg.pinv(J_GT) @ GT_e.T.flatten()
-   
-            # Twist velocity from camera frame to drone frame
-            twist_drone_camera = geometry.velocity_twist_matrix(rotation_matrix_drone_camera, dc_tr)
+                v_camera = lmda * np.linalg.pinv(J_GT) @ GT_e.T.flatten()
+    
+                # Twist velocity from camera frame to drone frame
+                twist_drone_camera = geometry.velocity_twist_matrix(rotation_matrix_drone_camera, dc_tr)
+                
+                v_drone = twist_drone_camera@v_camera
+
+            except Exception as e:
+                
+                print('GT', e)
+                print("GT cannot CONVERGE!")
+
+                info['ending_step'] = it_idx - 1 # The last correct sample is the previous one
+
+                visual_servoing = False
+                print("Detection is failing! Emergency landing...")
+                landing = True
+                continue
             
-            v_drone = twist_drone_camera@v_camera
             GT_ibvs_v_x, GT_ibvs_v_y, GT_ibvs_v_z, GT_ibvs_w_x, GT_ibvs_w_y, GT_ibvs_w_z = v_drone
 
             ########### ------------------ GT VISUAL SERVOING ------------------ ##########
