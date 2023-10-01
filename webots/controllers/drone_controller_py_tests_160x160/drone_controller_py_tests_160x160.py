@@ -145,13 +145,14 @@ if __name__ == '__main__':
     ########### ------------------ SAVING THINGS -------------------- ###########
     
     # Set to True if you want to collect data
-    collect_data = True
-    testrun = 1
+    collect_data = False
+    testrun = 0
+    median_err_thresh = int(50/2)
     while testrun < 10:
         if collect_data:
                 
             parent_folder = '../../datasets/IBVS-MULTIPLE-RUNS/competition/'
-            folder = parent_folder+ f'DL/run_{testrun}'
+            folder = parent_folder+ f'DL/run_{testrun}_{median_err_thresh}px_error'
 
             imgs_folder = f'{folder}/imgs/'
             imgs_ibvs_folder = f'{folder}/imgs_ibvs/'
@@ -279,7 +280,7 @@ if __name__ == '__main__':
         offset = None
         errors = np.zeros(shape=(3*sampling_frequency))
         median_err = np.inf
-        tasks['visual_servoing'] = {'visual_servoing':True, 'corner_detection':True, 'filter':filter, 'next_task_condition':{'median_error':median_err, 'error_array':errors}}
+        tasks['visual_servoing'] = {'visual_servoing':True, 'corner_detection':True, 'filter':filter, 'next_task_condition':{'median_error':median_err, 'error_array':errors}, 'median_err_thresh':median_err_thresh}
         
         cross_the_gate = False
         num_seconds = 10
@@ -610,12 +611,12 @@ if __name__ == '__main__':
 
                     # print(f"Error: {err:.2f}")
 
-                    if err <= 50 and track_error is False and vs_counter >= 500:
+                    if err <= median_err_thresh and track_error is False and vs_counter >= 500:
                         track_error = True
                         offset = it_idx
                         print("Collect errors...")
                     
-                    if track_error and median_err > 50:
+                    if track_error and median_err > median_err_thresh:
                         idx = it_idx - offset
                         if idx >= len(errors):
                             idx = len(errors)
@@ -623,7 +624,7 @@ if __name__ == '__main__':
                         if idx == len(errors):
                             median_err = np.median(errors)
                             print("Median error:", median_err)
-                            if median_err <= 50:
+                            if median_err <= median_err_thresh:
                                 visual_servoing = False
                                 cross_the_gate = True
                                 
@@ -657,7 +658,7 @@ if __name__ == '__main__':
                     
                 except Exception as e:
                     
-                    print('[IBVS DETECTION EXCEPTION]', e)
+                    print('Detection', e)
                                 
                 try:
                     # stacked image Jacobian
@@ -962,5 +963,8 @@ if __name__ == '__main__':
                 pickle.dump(dataset, f, protocol=pickle.HIGHEST_PROTOCOL)
             print(f"Data saved in {folder}.")
         ########### ------------------ SAVING THINGS -------------------- ###########
+        
+        if testrun == 0:
+            cv2.destroyWindow("Drone Camera")
         
         testrun += 1

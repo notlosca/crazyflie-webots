@@ -195,6 +195,7 @@ DEF GATE Solid {
         }
         DEF SHAPE Shape {
           appearance PBRAppearance {
+            baseColor 1 0.8 0.6
             baseColorMap ImageTexture {
               url [
                 "/home/losca/Documents/University/Thesis/crazyflie-webots/webots/simulations/textures/GateTex_orange.png"
@@ -233,8 +234,8 @@ DEF GATE Solid {
   name "imav2022-gate(1)"
 }
 DEF CRAZYFLIE Robot {
-  translation 1 -2.5 0.05
-  rotation 0 0 1 1.83
+  translation -1 -1.9 0.05
+  rotation 0 0 -1 -1.4373
   children [
     RangeFinder {
       translation 0.03 0 0.01

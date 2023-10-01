@@ -52,15 +52,15 @@ from src import corner, rotation, geometry
 # Change this path to your crazyflie-firmware folder
 sys.path.append('../../../../crazyflie-firmware/build')
 
-import cffirmware
+# import cffirmware
 
 ##### My ADDITION #####
 # print(sys.path)
 # print(os.getcwd())
 # print(os.listdir('../../../controllers/'))
 ##### My ADDITION #####
-from  pid_controller import init_pid_attitude_fixed_height_controller, pid_velocity_fixed_height_controller
-from pid_controller import MotorPower_t, ActualState_t, GainsPID_t, DesiredState_t
+# from  pid_controller import init_pid_attitude_fixed_height_controller, pid_velocity_fixed_height_controller
+# from pid_controller import MotorPower_t, ActualState_t, GainsPID_t, DesiredState_t
 robot = Supervisor()
 
 timestep = int(robot.getBasicTimeStep()) # original
@@ -129,7 +129,7 @@ print('Gate data:', br, bl, tl, tr, gate_center, translation_gate)
 keyboard = Keyboard()
 keyboard.enable(timestep)
 
-cffirmware.controllerPidInit()
+# cffirmware.controllerPidInit()
 
 print('Take off!')
 
@@ -143,8 +143,6 @@ pastYaw = 0
 
 past_time = robot.getTime()
 
-cffirmware.controllerPidInit()
-
 ########### ------------------ VISUAL SERVOING ------------------ ###########
 f = 0.0006
 pixel_size = (3.6e-6, 3.6e-6)
@@ -156,10 +154,12 @@ Z = 0.34
 
 # Desired positions
 wide = 200 # square 400px wide in the center of the camera frame
-pd = np.array([[cam.pp[0] - wide/2, cam.pp[1] - wide/2], # TL is the 1st
+pd = np.array([
                [cam.pp[0] - wide/2, cam.pp[1] + wide/2], # BL is the 2nd
                [cam.pp[0] + wide/2, cam.pp[1] + wide/2], # BR is the 3rd
-               [cam.pp[0] + wide/2, cam.pp[1] - wide/2]])# TR is the 4th
+               [cam.pp[0] + wide/2, cam.pp[1] - wide/2], # TR is the 4th
+               [cam.pp[0] - wide/2, cam.pp[1] - wide/2], # TL is the 1st
+               ])
 pd = pd.T # set the x and y coordinates by column
 
 lmda = 0.08

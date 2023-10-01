@@ -63,8 +63,8 @@ collect_data = True
 
 if collect_data:
         
-    parent_folder = '../../datasets/test_orange_gate/laboratory/'
-    folder = parent_folder+ f'cnn_smooth_velocity_{nn_model}_model'
+    parent_folder = '../../datasets/IBVS-RUN/laboratory/'
+    folder = parent_folder+ f'CNN'
 
     imgs_folder = f'{folder}/imgs/'
     imgs_ibvs_folder = f'{folder}/imgs_ibvs/'

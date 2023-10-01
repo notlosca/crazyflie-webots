@@ -8,8 +8,8 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/project
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.09844053167321623 0.10480902192161294 0.9896082713112947 1.5186076676582754
-  position 0.38229960752962666 -6.619818134935401 1.6314497833396633
+  orientation -0.22674283809260576 0.21195947991802966 0.9506107848360382 1.6886073589061643
+  position 1.1114979892636399 -5.899615935848088 2.383332656225285
   follow "MY_Crazyflie"
 }
 Floor {
@@ -208,8 +208,8 @@ DEF GATE Solid {
   name "imav2022-gate"
 }
 DEF CRAZYFLIE Robot {
-  translation 1 -2.5 0.015
-  rotation 0 0 1 1.83
+  translation 0.215596 -2.01141 0.015
+  rotation 0 0 1 1.6991
   children [
     DEF Multiranger Transform {
       translation 0 0 0.02
